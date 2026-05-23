@@ -367,7 +367,7 @@ The backend implements comprehensive security measures:
 ### CORS
 - Origin allowlist with regex validation
 - Credentials enabled for session handling
-- Supports localhost, vibecode.run, vibecodeapp.com, and vibecode.dev domains
+- Supports localhost only by default — extend `allowed` in `backend/src/index.ts` for prod domains
 
 ### Request Handling
 - 30-second request timeout

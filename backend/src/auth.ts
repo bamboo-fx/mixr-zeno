@@ -14,15 +14,10 @@ export const auth = betterAuth({
   },
 
   trustedOrigins: [
-    "vibecode://*/*",
+    "mixr://*/*",
     "exp://*/*",
     "http://localhost:*",
     "http://127.0.0.1:*",
-    "https://*.dev.vibecode.run",
-    "https://*.vibecode.run",
-    "https://*.vibecodeapp.com",
-    "https://*.vibecode.dev",
-    "https://vibecode.dev",
   ],
 
   plugins: [expo()],

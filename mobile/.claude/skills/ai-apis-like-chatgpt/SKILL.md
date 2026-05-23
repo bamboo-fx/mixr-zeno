@@ -6,11 +6,9 @@ description: How to use AI APIs like OpenAI, ChatGPT, Elevenlabs, etc. When a us
 # ai-apis-like-chatgpt
 
 ## Instructions
-The Vibecode Enviroment comes pre-installed with a lot of AI APIs like OpenAI, ChatGPT, Elevenlabs, etc. You can use these APIs to generate text, images, videos, sounds, etc.
+This project can talk directly to AI provider APIs (OpenAI, Grok, ElevenLabs, etc). Keys live in `mobile/.env` (Expo loads `EXPO_PUBLIC_*` vars at build time) or in `backend/.env` for server-side calls.
 
-Users can find most of the APIs in the API tab of the Vibecode App. You can tell the user to look there for any custom or advanced API integrations.
-
-However, we will go over the basic OpenAI APIs.
+This skill covers the basic OpenAI APIs.
 
 ## Examples
 
@@ -24,7 +22,7 @@ const response = await fetch("https://api.openai.com/v1/responses", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${process.env.EXPO_PUBLIC_VIBECODE_OPENAI_API_KEY}`,
+    Authorization: `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}`,
   },
   body: JSON.stringify({ model: "gpt-5.2", input: "Your prompt here" }),
 });
@@ -56,7 +54,7 @@ const response = await fetch("https://api.openai.com/v1/responses", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${process.env.EXPO_PUBLIC_VIBECODE_OPENAI_API_KEY}`,
+    Authorization: `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}`,
   },
   body: JSON.stringify({
     model: "gpt-5.2",
@@ -80,7 +78,7 @@ const response = await fetch("https://api.openai.com/v1/images/generations", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${process.env.EXPO_PUBLIC_VIBECODE_OPENAI_API_KEY}`,
+    Authorization: `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}`,
   },
   body: JSON.stringify({
     model: "gpt-image-1",
@@ -113,7 +111,7 @@ formData.append("size", "1024x1024");
 
 const response = await fetch("https://api.openai.com/v1/images/edits", {
   method: "POST",
-  headers: { Authorization: `Bearer ${process.env.EXPO_PUBLIC_VIBECODE_OPENAI_API_KEY}` },
+  headers: { Authorization: `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}` },
   body: formData,
 });
 const data = await response.json();
@@ -137,7 +135,7 @@ formData.append("model", "gpt-4o-transcribe");
 
 const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
   method: "POST",
-  headers: { Authorization: `Bearer ${process.env.EXPO_PUBLIC_VIBECODE_OPENAI_API_KEY}` },
+  headers: { Authorization: `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}` },
   body: formData,
 });
 const data = await response.json();

@@ -1,4 +1,3 @@
-import "@vibecodeapp/proxy"; // DO NOT REMOVE OTHERWISE VIBECODE PROXY WILL NOT WORK
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import "./env";
@@ -53,11 +52,6 @@ const app = new Hono<{
 const allowed = [
   /^http:\/\/localhost(:\d+)?$/,
   /^http:\/\/127\.0\.0\.1(:\d+)?$/,
-  /^https:\/\/[a-z0-9-]+\.dev\.vibecode\.run$/,
-  /^https:\/\/[a-z0-9-]+\.vibecode\.run$/,
-  /^https:\/\/[a-z0-9-]+\.vibecodeapp\.com$/,
-  /^https:\/\/[a-z0-9-]+\.vibecode\.dev$/,
-  /^https:\/\/vibecode\.dev$/,
 ];
 
 app.use(
@@ -142,7 +136,7 @@ app.route("/api/open-mixers", openMixersRouter);
 app.route("/api/parties", partiesRouter);
 app.route("/api/dm", directMessagesRouter);
 
-// Generic file upload endpoint — proxies to Vibecode storage CDN
+// Generic file upload endpoint — stores to local uploads/generic/ and serves via /uploads/generic/:filename
 app.post("/api/upload", async (c) => {
   const formData = await c.req.formData();
   const file = formData.get("file");
@@ -151,21 +145,52 @@ app.post("/api/upload", async (c) => {
     return c.json({ error: "No file provided" }, 400);
   }
 
-  const storageForm = new FormData();
-  storageForm.append("file", file);
-
-  const response = await fetch("https://storage.vibecodeapp.com/v1/files/upload", {
-    method: "POST",
-    body: storageForm,
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    return c.json({ error: (error as { error?: string }).error || "Upload failed" }, 500);
+  const uploadsDir = path.join(process.cwd(), "uploads", "generic");
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
   }
 
-  const result = await response.json() as { file: { id: string; url: string; originalFilename: string; contentType: string; sizeBytes: number } };
-  return c.json({ data: { id: result.file.id, url: result.file.url, filename: result.file.originalFilename, contentType: result.file.contentType, sizeBytes: result.file.sizeBytes } });
+  const ext = file.name.includes(".") ? file.name.slice(file.name.lastIndexOf(".")) : "";
+  const id = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  const filename = `${id}${ext}`;
+  const filePath = path.join(uploadsDir, filename);
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  fs.writeFileSync(filePath, buffer);
+
+  const baseUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 3000}`;
+  return c.json({
+    data: {
+      id,
+      url: `${baseUrl}/uploads/generic/${filename}`,
+      filename: file.name,
+      contentType: file.type,
+      sizeBytes: buffer.length,
+    },
+  });
+});
+
+// Serve generic uploads
+app.get("/uploads/generic/:filename", async (c) => {
+  const filename = c.req.param("filename");
+  const filePath = path.join(process.cwd(), "uploads", "generic", filename);
+  if (!fs.existsSync(filePath)) return c.notFound();
+
+  const file = fs.readFileSync(filePath);
+  const ext = filename.split(".").pop()?.toLowerCase();
+  const contentType =
+    ext === "mp4" ? "video/mp4" :
+    ext === "mov" ? "video/quicktime" :
+    ext === "webp" ? "image/webp" :
+    ext === "gif" ? "image/gif" :
+    ext === "png" ? "image/png" :
+    ext === "jpg" || ext === "jpeg" ? "image/jpeg" :
+    "application/octet-stream";
+
+  return new Response(file, {
+    status: 200,
+    headers: { "Content-Type": contentType, "Cache-Control": "public, max-age=31536000" },
+  });
 });
 
 // Serve static files for global stories uploads

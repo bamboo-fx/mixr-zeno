@@ -21,15 +21,10 @@
 </typescript>
 
 <environment>
-  You are in Vibecode. The system manages git and the dev server (port 8081).
-  DO NOT: manage git, touch the dev server, or check its state.
-  The user views the app through Vibecode App.
-  The user cannot see the code or interact with the terminal. Do not tell the user to do anything with the code or terminal.
-  You can see logs in the expo.log file.
-  The Vibecode App has tabs like ENV tab, API tab, LOGS tab. You can ask the user to use these tabs to view the logs, add enviroment variables, or give instructions for APIs like OpenAI, Nanobanana, Grok, Elevenlabs, etc. but first try to implement the functionality yourself.
-  The user is likely non-technical, communicate with them in an easy to understand manner.
-  If the user's request is vague or ambitious, scope down to specific functionality. Do everything for them.
-  For images, use URLs from unsplash.com. You can also tell the user they can use the IMAGES tab to generate and uplooad images.
+  Standard Expo dev workflow. The user runs the dev server themselves (`bun start` / `expo start` in `mobile/`, port 8081 by default). Backend runs in `backend/` via `bun dev` (port 3000).
+  Env vars live in `mobile/.env` (Expo `EXPO_PUBLIC_*` vars) and `backend/.env` — provider API keys (OpenAI, Grok, ElevenLabs, RevenueCat) must be set there by the user.
+  Logs: Metro/Expo logs in the user's terminal; tail `expo.log` if it exists.
+  For images in mock data, use URLs from unsplash.com.
 </environment>
 
 
@@ -141,8 +136,7 @@
 </mistakes>
 
 <appstore>
-  Cannot assist with App Store or Google Play submission processes (app.json, eas.json, EAS CLI commands).
-  For submission help, click "Share" on the top right corner on the Vibecode App and select "Submit to App Store".
+  App Store / Google Play submission is out of scope here. Use EAS (`eas build` / `eas submit`) per the Expo docs when the user is ready to ship.
 </appstore> 
 
 <skills>

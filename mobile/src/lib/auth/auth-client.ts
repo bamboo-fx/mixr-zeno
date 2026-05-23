@@ -8,8 +8,8 @@ export const authClient = createAuthClient({
   baseURL: process.env.EXPO_PUBLIC_BACKEND_URL! as string,
   plugins: [
     expoClient({
-      scheme: "vibecode",
-      storagePrefix: "vibecode",
+      scheme: "mixr",
+      storagePrefix: "mixr",
       storage: SecureStore,
     }),
   ],
