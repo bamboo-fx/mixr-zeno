@@ -1,0 +1,958 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ========================================
+// BETTER AUTH TABLES
+// ========================================
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  profile       Profile?
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model College {
+  id              String   @id @default(cuid())
+  name            String
+  state           String?
+  verifiedDomain  String?
+  createdAt       DateTime @default(now())
+
+  profiles              Profile[]
+  groups                Group[]
+  mixers                Mixer[]
+  mixerRequests         MixerRequest[]
+  mixerStories          MixerStory[]
+  storyReactions        StoryReaction[]
+  weeklyMixerRankings   WeeklyMixerRanking[]
+  groupHighlights       GroupHighlight[]
+  campusVenues          CampusVenue[]
+  venueVibes            VenueVibe[]
+  vibeContributions     VibeContribution[]
+}
+
+model Profile {
+  id                  String   @id @default(cuid())
+  userId              String?  @unique
+  email               String   @unique
+  name                String
+  age                 Int?
+  gender              String?
+  collegeId           String?
+  yearInSchool        String?
+  drinkingPreference  String   @default("flexible")
+  relationshipStatus  String   @default("single") // 'single' | 'taken' | 'complicated' | 'prefer_not_to_say'
+  personalityIndex    Float    @default(0.5)
+  reliabilityScore    Float    @default(0.5)
+  avatarUrl           String?
+  headerUrl           String?  // Header/banner image URL
+  bio                 String?
+  role                String   @default("member")
+  // .edu Email Verification
+  eduEmail            String?
+  eduVerified         Boolean  @default(false)
+  eduVerifiedAt       DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user               User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  college            College?  @relation(fields: [collegeId], references: [id])
+  interests          UserInterest[]
+  groupMemberships   GroupMember[]
+  groupJoinRequests  GroupJoinRequest[]
+  createdGroups      Group[]   @relation("GroupCreator")
+  mixerParticipants  MixerParticipant[]
+  blocksGiven        Block[]   @relation("Blocker")
+  blocksReceived     Block[]   @relation("Blocked")
+  reportsGiven       Report[]  @relation("Reporter")
+  reportsReceived    Report[]  @relation("ReportedUser")
+  feedbacks          MixerFeedback[]
+  mixerStories       MixerStory[]
+  storyReactions     StoryReaction[]
+  groupHighlights    GroupHighlight[]
+  mixerRatings       MixerRating[]
+  eduVerifications   EduVerification[]
+  notifications      Notification[]
+  sentInvites        GroupInvite[]    @relation("InviterProfile")
+  receivedInvites    GroupInvite[]    @relation("InviteeProfile")
+  globalStories      GlobalStory[]
+  globalStoryReactions GlobalStoryReaction[]
+  pairingRequestsMade    PairingRequest[] @relation("PairingRequester")
+  pairingRequestsReceived PairingRequest[] @relation("PairingTarget")
+  pairingRequestsDecided  PairingRequest[] @relation("PairingDecider")
+  chatMessages  ChatMessage[]
+  openMixersHosted         OpenMixer[]            @relation("OpenMixerHost")
+  openMixerParticipations  OpenMixerParticipant[] @relation("OpenMixerParticipants")
+  conversationsAsA         DirectConversation[]   @relation("ConversationUserA")
+  conversationsAsB         DirectConversation[]   @relation("ConversationUserB")
+  directMessagesSent       DirectMessage[]        @relation("DirectMessageSender")
+}
+
+model Interest {
+  id    String @id @default(cuid())
+  name  String @unique
+
+  users UserInterest[]
+}
+
+model UserInterest {
+  id         String  @id @default(cuid())
+  userId     String
+  interestId String
+
+  user       Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interest   Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, interestId])
+}
+
+model Group {
+  id             String   @id @default(cuid())
+  collegeId      String
+  name           String
+  description    String?
+  category       String
+  coverImageUrl  String?
+  createdById    String
+  inviteCode     String?  @unique // 6-letter code for joining
+  isVerified     Boolean  @default(false)
+  isPrivate      Boolean  @default(false)
+  color          String?  // Custom card color hex
+  avgStarRating  Float?   // Aggregated star rating (0-5 stars)
+  totalRatings   Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  college           College @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  createdBy         Profile @relation("GroupCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  members           GroupMember[]
+  joinRequests      GroupJoinRequest[]
+  requestsFrom      MixerRequest[] @relation("RequestingGroup")
+  requestsTo        MixerRequest[] @relation("ReceivingGroup")
+  mixersAsA         Mixer[]  @relation("MixerGroupA")
+  mixersAsB         Mixer[]  @relation("MixerGroupB")
+  participantSlots  MixerParticipant[]
+  mixerStories      MixerStory[]
+  groupHighlights   GroupHighlight[]
+  mixerGroups       MixerGroup[]
+  ratingsReceived   MixerRating[] @relation("RatedGroup")
+  invites           GroupInvite[]
+}
+
+model GroupMember {
+  id        String   @id @default(cuid())
+  groupId   String
+  userId    String
+  role      String   @default("member")
+  joinedAt  DateTime @default(now())
+
+  group     Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user      Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+}
+
+model GroupJoinRequest {
+  id          String    @id @default(cuid())
+  groupId     String
+  userId      String
+  status      String    @default("pending")
+  createdAt   DateTime  @default(now())
+  decidedAt   DateTime?
+
+  group       Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user        Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Activity {
+  id               String   @id @default(cuid())
+  name             String
+  category         String
+  description      String
+  instructions     String
+  supplies         String?
+  minPeople        Int      @default(4)
+  maxPeople        Int      @default(50)
+  energyLevel      Int      @default(3)
+  alcoholRelated   Boolean  @default(false)
+  durationMinutes  Int      @default(60)
+  createdAt        DateTime @default(now())
+
+  mixerRequests        MixerRequest[]
+  mixerRequestCounters MixerRequest[] @relation("CounterActivity")
+  mixers               Mixer[]
+  openMixers           OpenMixer[]
+}
+
+model MixerRequest {
+  id                   String    @id @default(cuid())
+  collegeId            String
+  requestingGroupId    String
+  receivingGroupId     String
+  proposedStart        DateTime
+  proposedEnd          DateTime?
+  proposedLocation     String
+  proposedActivityId   String?
+  message              String?
+  status               String    @default("pending") // 'pending' | 'active' | 'expired' | 'cancelled' | 'completed'
+  dismissedByRequester Boolean   @default(false)
+  counterStart         DateTime?
+  counterLocation      String?
+  counterActivityId    String?
+  createdById          String
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  college              College  @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  requestingGroup      Group    @relation("RequestingGroup", fields: [requestingGroupId], references: [id])
+  receivingGroup       Group    @relation("ReceivingGroup", fields: [receivingGroupId], references: [id])
+  proposedActivity     Activity? @relation(fields: [proposedActivityId], references: [id])
+  counterActivity      Activity? @relation("CounterActivity", fields: [counterActivityId], references: [id])
+  invites              MixerRequestInvite[]
+}
+
+// ========================================
+// V2: MULTI-GROUP MIXER REQUEST INVITES
+// ========================================
+
+model MixerRequestInvite {
+  id              String    @id @default(cuid())
+  requestId       String
+  invitedGroupId  String
+  status          String    @default("pending") // 'pending' | 'accepted' | 'declined'
+  respondedById   String?
+  respondedAt     DateTime?
+  createdAt       DateTime  @default(now())
+
+  request         MixerRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, invitedGroupId])
+  @@index([requestId])
+  @@index([invitedGroupId])
+}
+
+model Mixer {
+  id              String    @id @default(cuid())
+  collegeId       String
+  groupAId        String
+  groupBId        String
+  scheduledStart  DateTime
+  scheduledEnd    DateTime?
+  location        String
+  activityId      String?
+  status          String    @default("upcoming")
+  pairingMode     String    @default("manual")
+  pairingLocked   Boolean   @default(false)
+  liveStartedAt   DateTime?
+  completedAt     DateTime?
+  recapExpiresAt  DateTime? // 24h after completedAt for recap visibility
+  avgRating       Float?    // Average mixer rating (0-10 scale)
+  totalRatings    Int       @default(0)
+  createdAt       DateTime  @default(now())
+
+  college              College   @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  groupA               Group     @relation("MixerGroupA", fields: [groupAId], references: [id])
+  groupB               Group     @relation("MixerGroupB", fields: [groupBId], references: [id])
+  activity             Activity? @relation(fields: [activityId], references: [id])
+  participants         MixerParticipant[]
+  pairings             Pairing[]
+  compatibilityScores  CompatibilityScore[]
+  feedbacks            MixerFeedback[]
+  mixerStories         MixerStory[]
+  weeklyRankings       WeeklyMixerRanking[]
+  mixerGroups          MixerGroup[]
+  mixerRatings         MixerRating[]
+  mixerMedia           MixerMedia[]
+  pairingRequests      PairingRequest[]
+  changeRequests       MixerChangeRequest[]
+}
+
+model MixerChangeRequest {
+  id                 String    @id @default(cuid())
+  mixerId            String
+  requestingGroupId  String
+  proposedStart      DateTime
+  proposedEnd        DateTime?
+  proposedLocation   String
+  proposedActivityId String?
+  message            String?
+  status             String    @default("pending") // 'pending' | 'accepted' | 'declined'
+  createdById        String
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  mixer              Mixer     @relation(fields: [mixerId], references: [id], onDelete: Cascade)
+
+  @@index([mixerId])
+}
+
+model MixerParticipant {
+  id          String   @id @default(cuid())
+  mixerId     String
+  userId      String
+  groupId     String
+  rsvpStatus  String   @default("going")
+  checkedIn   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  mixer       Mixer   @relation(fields: [mixerId], references: [id], onDelete: Cascade)
+  user        Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group       Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([mixerId, userId, groupId])
+}
+
+model CompatibilityScore {
+  id          String   @id @default(cuid())
+  mixerId     String
+  userAId     String
+  userBId     String
+  score       Float
+  features    String
+  computedAt  DateTime @default(now())
+
+  mixer       Mixer @relation(fields: [mixerId], references: [id], onDelete: Cascade)
+
+  @@unique([mixerId, userAId, userBId])
+}
+
+model Pairing {
+  id          String   @id @default(cuid())
+  mixerId     String
+  userAId     String
+  userBId     String
+  revealed    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  mixer       Mixer @relation(fields: [mixerId], references: [id], onDelete: Cascade)
+
+  @@unique([mixerId, userAId])
+  @@unique([mixerId, userBId])
+}
+
+model MixerFeedback {
+  id                  String   @id @default(cuid())
+  mixerId             String
+  userId              String
+  conversationRating  Int?
+  activityRating      Int?
+  wouldMixAgain       Boolean?
+  notes               String?
+  createdAt           DateTime @default(now())
+
+  mixer       Mixer   @relation(fields: [mixerId], references: [id], onDelete: Cascade)
+  user        Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([mixerId, userId])
+}
+
+model Block {
+  id         String   @id @default(cuid())
+  blockerId  String
+  blockedId  String
+  createdAt  DateTime @default(now())
+
+  blocker    Profile @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked    Profile @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+}
+
+model Report {
+  id              String   @id @default(cuid())
+  reporterId      String
+  reportedUserId  String?
+  reason          String
+  details         String?
+  status          String   @default("open")
+  createdAt       DateTime @default(now())
+
+  reporter        Profile  @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUser    Profile? @relation("ReportedUser", fields: [reportedUserId], references: [id], onDelete: SetNull)
+}
+
+model MixerStory {
+  id          String   @id @default(cuid())
+  collegeId   String
+  mixerId     String
+  uploaderId  String
+  groupId     String
+  storagePath String
+  caption     String?
+  mediaType   String   @default("image")
+  width       Int?
+  height      Int?
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+  isDeleted   Boolean  @default(false)
+
+  college     College  @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  mixer       Mixer    @relation(fields: [mixerId], references: [id], onDelete: Cascade)
+  uploader    Profile  @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  reactions   StoryReaction[]
+  highlightItems GroupHighlightItem[]
+  highlightCovers GroupHighlight[] @relation("HighlightCover")
+
+  @@index([collegeId, createdAt(sort: Desc)])
+  @@index([mixerId, createdAt(sort: Asc)])
+  @@index([expiresAt])
+  @@index([isDeleted])
+}
+
+// ========================================
+// STORY REACTIONS
+// ========================================
+
+model StoryReaction {
+  id         String   @id @default(cuid())
+  collegeId  String
+  storyId    String
+  reactorId  String
+  reaction   String   // 'fire' | 'party' | 'love' -> maps to emojis
+  createdAt  DateTime @default(now())
+
+  college    College     @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  story      MixerStory  @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  reactor    Profile     @relation(fields: [reactorId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, reactorId, reaction])
+  @@index([storyId, createdAt(sort: Desc)])
+  @@index([collegeId, createdAt(sort: Desc)])
+}
+
+// ========================================
+// WEEKLY MIXER RANKINGS (Top Mixer)
+// ========================================
+
+model WeeklyMixerRanking {
+  id         String   @id @default(cuid())
+  collegeId  String
+  weekStart  DateTime
+  mixerId    String
+  score      Float
+  breakdown  String   // JSON string with scoring breakdown
+  rank       Int
+  createdAt  DateTime @default(now())
+
+  college    College @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  mixer      Mixer   @relation(fields: [mixerId], references: [id], onDelete: Cascade)
+
+  @@unique([collegeId, weekStart, mixerId])
+  @@index([collegeId, weekStart, rank])
+}
+
+// ========================================
+// GROUP HIGHLIGHTS (Pinned Story Bundles)
+// ========================================
+
+model GroupHighlight {
+  id               String   @id @default(cuid())
+  collegeId        String
+  groupId          String
+  title            String
+  coverStoryItemId String?
+  createdById      String
+  isDeleted        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  college      College              @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  group        Group                @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdBy    Profile              @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  coverStory   MixerStory?          @relation("HighlightCover", fields: [coverStoryItemId], references: [id])
+  items        GroupHighlightItem[]
+
+  @@index([groupId, createdAt(sort: Desc)])
+  @@index([collegeId])
+}
+
+model GroupHighlightItem {
+  id            String   @id @default(cuid())
+  highlightId   String
+  storagePath   String   // Copied media in group-highlights folder
+  sourceStoryId String?
+  createdAt     DateTime @default(now())
+
+  highlight    GroupHighlight @relation(fields: [highlightId], references: [id], onDelete: Cascade)
+  sourceStory  MixerStory?    @relation(fields: [sourceStoryId], references: [id])
+
+  @@index([highlightId, createdAt])
+}
+
+// ========================================
+// CAMPUS HEATMAP (Privacy-safe Venue Vibes)
+// ========================================
+
+model CampusVenue {
+  id         String   @id @default(cuid())
+  collegeId  String
+  name       String
+  category   String   // 'dorm' | 'dining' | 'quad' | 'gym' | 'party' | 'other'
+  lat        Float?
+  lon        Float?
+  createdAt  DateTime @default(now())
+
+  college        College            @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  vibes          VenueVibe[]
+  contributions  VibeContribution[]
+
+  @@unique([collegeId, name])
+  @@index([collegeId])
+}
+
+model VenueVibe {
+  id                  String   @id @default(cuid())
+  collegeId           String
+  venueId             String
+  timeBucket          DateTime // date_trunc('hour', now())
+  vibeScore           Float    @default(1.0)
+  uniqueContributors  Int      @default(0)
+  createdAt           DateTime @default(now())
+
+  college  College      @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  venue    CampusVenue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@unique([collegeId, venueId, timeBucket])
+  @@index([collegeId, timeBucket])
+}
+
+model VibeContribution {
+  id              String   @id @default(cuid())
+  collegeId       String
+  venueId         String
+  timeBucket      DateTime
+  contributorHash String   // hash(userId + timeBucket + venueId)
+  createdAt       DateTime @default(now())
+
+  college  College      @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  venue    CampusVenue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@unique([contributorHash])
+  @@index([venueId, timeBucket])
+}
+
+// ========================================
+// V2: MULTI-GROUP MIXERS
+// ========================================
+
+model MixerGroup {
+  id        String   @id @default(cuid())
+  mixerId   String
+  groupId   String
+  joinedAt  DateTime @default(now())
+
+  mixer     Mixer @relation(fields: [mixerId], references: [id], onDelete: Cascade)
+  group     Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([mixerId, groupId])
+  @@index([mixerId])
+  @@index([groupId])
+}
+
+// ========================================
+// V2: MIXER RATINGS (0-10 scale)
+// ========================================
+
+model MixerRating {
+  id           String   @id @default(cuid())
+  mixerId      String
+  raterId      String
+  ratedGroupId String   // Which group is being rated
+  rating       Int      // 0-10 scale
+  comment      String?
+  createdAt    DateTime @default(now())
+
+  mixer      Mixer   @relation(fields: [mixerId], references: [id], onDelete: Cascade)
+  rater      Profile @relation(fields: [raterId], references: [id], onDelete: Cascade)
+  ratedGroup Group   @relation("RatedGroup", fields: [ratedGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([mixerId, raterId, ratedGroupId])
+  @@index([mixerId])
+  @@index([ratedGroupId])
+}
+
+// ========================================
+// V2: MIXER MEDIA (Photos/Videos during mixer)
+// ========================================
+
+model MixerMedia {
+  id          String   @id @default(cuid())
+  mixerId     String
+  uploaderId  String
+  storagePath String
+  mediaType   String   @default("image") // 'image' | 'video'
+  caption     String?
+  width       Int?
+  height      Int?
+  createdAt   DateTime @default(now())
+
+  mixer Mixer @relation(fields: [mixerId], references: [id], onDelete: Cascade)
+
+  @@index([mixerId, createdAt(sort: Desc)])
+}
+
+// ========================================
+// V2: CUSTOM ACTIVITIES (User-created)
+// ========================================
+
+model CustomActivity {
+  id              String   @id @default(cuid())
+  collegeId       String
+  createdById     String
+  name            String
+  description     String
+  instructions    String
+  supplies        String?
+  minPeople       Int      @default(4)
+  maxPeople       Int      @default(50)
+  energyLevel     Int      @default(3) // 1-5
+  alcoholRelated  Boolean  @default(false)
+  durationMinutes Int      @default(60)
+  isApproved      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@index([collegeId, isApproved])
+}
+
+// ========================================
+// V2: AI ACTIVITY SUGGESTIONS (Mixy)
+// ========================================
+
+model AISuggestion {
+  id             String   @id @default(cuid())
+  mixerId        String?
+  groupIds       String   // JSON array of group IDs
+  totalPeople    Int
+  energyPref     Int      @default(3) // 1-5
+  alcoholAllowed Boolean  @default(true)
+  suggestedActivities String // JSON array of suggested activity IDs/names
+  reasoning      String?  // AI explanation
+  createdAt      DateTime @default(now())
+
+  @@index([mixerId])
+}
+
+// ========================================
+// NOTIFICATIONS & GROUP INVITES
+// ========================================
+
+model Notification {
+  id          String    @id @default(cuid())
+  userId      String    // Recipient
+  type        String    // 'group_invite' | 'invite_accepted' | 'invite_declined' | 'join_request' | 'general'
+  title       String
+  body        String
+  data        String?   // JSON string with additional data (e.g., groupId, inviteId)
+  read        Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  user        Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model GroupInvite {
+  id          String    @id @default(cuid())
+  groupId     String
+  inviterId   String    // Who sent the invite
+  inviteeId   String    // Who receives the invite
+  status      String    @default("pending") // 'pending' | 'accepted' | 'declined'
+  createdAt   DateTime  @default(now())
+  respondedAt DateTime?
+
+  group       Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  inviter     Profile   @relation("InviterProfile", fields: [inviterId], references: [id], onDelete: Cascade)
+  invitee     Profile   @relation("InviteeProfile", fields: [inviteeId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, inviteeId])
+  @@index([inviteeId, status])
+  @@index([groupId])
+}
+
+// ========================================
+// EDU EMAIL VERIFICATION
+// ========================================
+
+model EduVerification {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  eduEmail   String
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  user       Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ========================================
+// GLOBAL STORIES (Instagram/Snapchat-like)
+// ========================================
+
+model GlobalStory {
+  id          String   @id @default(cuid())
+  collegeId   String
+  uploaderId  String
+  storagePath String
+  mediaType   String   @default("image") // 'image' | 'video'
+  caption     String?
+  width       Int?
+  height      Int?
+  expiresAt   DateTime // 24 hours from creation
+  isDeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  uploader    Profile  @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+  reactions   GlobalStoryReaction[]
+
+  @@index([collegeId, createdAt(sort: Desc)])
+  @@index([uploaderId, createdAt(sort: Desc)])
+  @@index([expiresAt])
+  @@index([isDeleted])
+}
+
+model GlobalStoryReaction {
+  id         String   @id @default(cuid())
+  storyId    String
+  reactorId  String
+  reaction   String   // 'fire' | 'party' | 'love' | 'laugh' | 'wow'
+  createdAt  DateTime @default(now())
+
+  story      GlobalStory @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  reactor    Profile     @relation(fields: [reactorId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, reactorId, reaction])
+  @@index([storyId, createdAt(sort: Desc)])
+}
+
+// ========================================
+// PAIRING REQUESTS (User requests, Admin decides)
+// ========================================
+
+model PairingRequest {
+  id          String    @id @default(cuid())
+  mixerId     String
+  requesterId String    // User making the request
+  targetId    String    // User they want to be paired with
+  message     String?   // Optional note
+  status      String    @default("pending") // 'pending' | 'approved' | 'declined' | 'expired'
+  decidedById String?   // Admin who decided
+  decidedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  mixer       Mixer   @relation(fields: [mixerId], references: [id], onDelete: Cascade)
+  requester   Profile @relation("PairingRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  target      Profile @relation("PairingTarget", fields: [targetId], references: [id], onDelete: Cascade)
+  decidedBy   Profile? @relation("PairingDecider", fields: [decidedById], references: [id])
+
+  @@unique([mixerId, requesterId, targetId])
+  @@index([mixerId, status])
+  @@index([requesterId])
+  @@index([targetId])
+}
+
+// ========================================
+// CHAT ROOMS & MESSAGES
+// ========================================
+
+model ChatRoom {
+  id          String   @id @default(cuid())
+  type        String   // 'group' | 'mixer' | 'openMixer'
+  groupId     String?
+  mixerId     String?
+  openMixerId String?  // for open mixer group chats
+  isOpen      Boolean  @default(true)  // false = chat is closed (mixer ended)
+  name        String
+  lastMessageAt DateTime?
+  createdAt   DateTime @default(now())
+
+  messages    ChatMessage[]
+
+  @@index([groupId])
+  @@index([mixerId])
+  @@index([openMixerId])
+}
+
+model ChatMessage {
+  id                String   @id @default(cuid())
+  roomId            String
+  senderId          String
+  text              String
+  messageType       String   @default("text")  // 'text' | 'change_request'
+  changeRequestId   String?  // set when messageType = 'change_request'
+  createdAt         DateTime @default(now())
+
+  room       ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender     Profile  @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, createdAt(sort: Desc)])
+  @@index([senderId])
+}
+
+// ── Open Mixers (public, group-agnostic events) ──────────────────────────────
+
+model OpenMixer {
+  id             String    @id @default(cuid())
+  title          String
+  description    String?
+  imageUrl       String?
+  color          String?   // hex color like #A855F7
+  backgroundImage String? // key like 'poker', 'party', 'sports', etc.
+  activityId     String?
+  hostId         String
+  location       String
+  scheduledStart DateTime
+  scheduledEnd   DateTime?
+  maxCapacity    Int       @default(20)
+  status         String    @default("open")
+  pairingMode    String    @default("random")
+  pairingLocked  Boolean   @default(false)
+  liveStartedAt  DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  host         Profile               @relation("OpenMixerHost", fields: [hostId], references: [id])
+  activity     Activity?             @relation(fields: [activityId], references: [id])
+  participants OpenMixerParticipant[]
+  pairings     OpenMixerPairing[]
+
+  @@index([status, scheduledStart])
+  @@index([hostId])
+}
+
+model OpenMixerParticipant {
+  id          String   @id @default(cuid())
+  openMixerId String
+  userId      String
+  rsvpStatus  String   @default("going")
+  createdAt   DateTime @default(now())
+
+  openMixer  OpenMixer @relation(fields: [openMixerId], references: [id], onDelete: Cascade)
+  user       Profile   @relation("OpenMixerParticipants", fields: [userId], references: [id])
+
+  @@unique([openMixerId, userId])
+  @@index([openMixerId])
+}
+
+model OpenMixerPairing {
+  id          String   @id @default(cuid())
+  openMixerId String
+  userAId     String
+  userBId     String
+  revealed    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  openMixer   OpenMixer @relation(fields: [openMixerId], references: [id], onDelete: Cascade)
+
+  @@index([openMixerId])
+}
+
+// ========================================
+// PARTIES (Weekend college parties)
+// ========================================
+
+model Party {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  location    String
+  date        DateTime
+  imageUrl    String?
+  hostName    String?
+  collegeId   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([date])
+}
+
+// ========================================
+// DIRECT MESSAGES (1:1 messaging with requests)
+// ========================================
+
+model DirectConversation {
+  id            String    @id @default(cuid())
+  userAId       String    // User who initiated (sent first request)
+  userBId       String    // User who received the request
+  status        String    @default("pending") // 'pending' | 'accepted' | 'declined'
+  lastMessageAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  userA         Profile   @relation("ConversationUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB         Profile   @relation("ConversationUserB", fields: [userBId], references: [id], onDelete: Cascade)
+  messages      DirectMessage[]
+
+  @@unique([userAId, userBId])
+  @@index([userAId, status])
+  @@index([userBId, status])
+  @@index([lastMessageAt(sort: Desc)])
+}
+
+model DirectMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  text           String
+  createdAt      DateTime @default(now())
+
+  conversation   DirectConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         Profile            @relation("DirectMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt(sort: Desc)])
+  @@index([senderId])
+}
