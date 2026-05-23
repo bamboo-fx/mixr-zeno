@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquid Resonance — Generative Social Topology</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --anthropic-dark: #141413;
+            --anthropic-light: #faf9f5;
+            --anthropic-mid-gray: #b0aea5;
+            --anthropic-light-gray: #e8e6dc;
+            --anthropic-orange: #d97757;
+            --anthropic-blue: #6a9bcc;
+            --anthropic-green: #788c5d;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--anthropic-light) 0%, #f5f3ee 100%);
+            min-height: 100vh;
+            color: var(--anthropic-dark);
+        }
+        .container { display: flex; min-height: 100vh; padding: 20px; gap: 20px; }
+        .sidebar {
+            width: 320px; flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 24px; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(20, 20, 19, 0.1);
+            overflow-y: auto;
+            max-height: calc(100vh - 40px);
+        }
+        .sidebar h1 { font-family: 'Lora', serif; font-size: 24px; font-weight: 500; margin-bottom: 8px; }
+        .sidebar .subtitle { color: var(--anthropic-mid-gray); font-size: 14px; margin-bottom: 32px; line-height: 1.5; }
+        .control-section { margin-bottom: 32px; }
+        .control-section h3 {
+            font-size: 16px; font-weight: 600; margin-bottom: 16px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .control-section h3::before { content: '•'; color: var(--anthropic-orange); }
+        .seed-input {
+            width: 100%; background: var(--anthropic-light);
+            padding: 12px; border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px; margin-bottom: 12px;
+            border: 1px solid var(--anthropic-light-gray);
+            text-align: center;
+        }
+        .seed-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+        .control-group { margin-bottom: 20px; }
+        .control-group label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+        .slider-container { display: flex; align-items: center; gap: 12px; }
+        .slider-container input[type="range"] {
+            flex: 1; height: 4px; background: var(--anthropic-light-gray);
+            border-radius: 2px; -webkit-appearance: none;
+        }
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 16px; height: 16px;
+            background: var(--anthropic-orange); border-radius: 50%; cursor: pointer;
+        }
+        .value-display {
+            font-family: 'Courier New', monospace; font-size: 12px;
+            color: var(--anthropic-mid-gray); min-width: 60px; text-align: right;
+        }
+        .color-group { margin-bottom: 16px; }
+        .color-group label { display: block; font-size: 12px; color: var(--anthropic-mid-gray); margin-bottom: 4px; }
+        .color-picker-container { display: flex; align-items: center; gap: 8px; }
+        .color-picker-container input[type="color"] {
+            width: 32px; height: 32px; border: none; border-radius: 6px; cursor: pointer;
+        }
+        .color-hex {
+            font-family: 'Courier New', monospace; font-size: 11px; color: var(--anthropic-mid-gray);
+        }
+        .button {
+            background: var(--anthropic-orange); color: white; border: none;
+            padding: 10px 16px; border-radius: 6px; font-size: 14px;
+            font-weight: 500; cursor: pointer; width: 100%;
+            transition: background 0.2s;
+        }
+        .button:hover { background: #c86641; }
+        .button.secondary { background: var(--anthropic-blue); }
+        .button.secondary:hover { background: #5a8bbc; }
+        .button.tertiary { background: var(--anthropic-green); }
+        .button.tertiary:hover { background: #687c4d; }
+        .button-row { display: flex; gap: 8px; }
+        .button-row .button { flex: 1; }
+        .canvas-area { flex: 1; display: flex; align-items: center; justify-content: center; }
+        #canvas-container {
+            width: 100%; max-width: 1000px; border-radius: 12px;
+            overflow: hidden; box-shadow: 0 20px 40px rgba(20, 20, 19, 0.1); background: #1A0A2E;
+        }
+        #canvas-container canvas { display: block; width: 100% !important; height: auto !important; }
+        .preset-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+        .preset-btn {
+            background: var(--anthropic-light); border: 1px solid var(--anthropic-light-gray);
+            padding: 8px; border-radius: 6px; font-size: 12px; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .preset-btn:hover { background: var(--anthropic-orange); color: white; border-color: var(--anthropic-orange); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>Liquid Resonance</h1>
+            <div class="subtitle">Social turbulence visualized as particle dynamics. Connection emerges from chaos through computational poetry.</div>
+
+            <!-- FIXED: Seed Section -->
+            <div class="control-section">
+                <h3>Seed</h3>
+                <input type="number" id="seed-input" class="seed-input" value="42" onchange="updateSeed()">
+                <div class="seed-controls">
+                    <button class="button secondary" onclick="previousSeed()">← Prev</button>
+                    <button class="button secondary" onclick="nextSeed()">Next →</button>
+                </div>
+                <button class="button tertiary" onclick="randomSeedAndUpdate()">↻ Random</button>
+                <div class="preset-buttons">
+                    <button class="preset-btn" onclick="loadPreset(7)">Crystalline</button>
+                    <button class="preset-btn" onclick="loadPreset(23)">Turbulent</button>
+                    <button class="preset-btn" onclick="loadPreset(108)">Harmonic</button>
+                    <button class="preset-btn" onclick="loadPreset(256)">Emergent</button>
+                </div>
+            </div>
+
+            <!-- Parameters Section -->
+            <div class="control-section">
+                <h3>Flow Dynamics</h3>
+                <div class="control-group">
+                    <label>Particle Count</label>
+                    <div class="slider-container">
+                        <input type="range" id="particleCount" min="100" max="800" value="400" oninput="updateParam('particleCount', this.value)">
+                        <span class="value-display" id="particleCount-value">400</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Flow Intensity</label>
+                    <div class="slider-container">
+                        <input type="range" id="flowIntensity" min="0.5" max="4" step="0.1" value="2" oninput="updateParam('flowIntensity', this.value)">
+                        <span class="value-display" id="flowIntensity-value">2.0</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Noise Scale</label>
+                    <div class="slider-container">
+                        <input type="range" id="noiseScale" min="0.001" max="0.01" step="0.0005" value="0.004" oninput="updateParam('noiseScale', this.value)">
+                        <span class="value-display" id="noiseScale-value">0.004</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Turbulence</label>
+                    <div class="slider-container">
+                        <input type="range" id="turbulence" min="0" max="2" step="0.1" value="0.8" oninput="updateParam('turbulence', this.value)">
+                        <span class="value-display" id="turbulence-value">0.8</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Social Forces</h3>
+                <div class="control-group">
+                    <label>Attraction Strength</label>
+                    <div class="slider-container">
+                        <input type="range" id="attractionStrength" min="0" max="0.5" step="0.01" value="0.15" oninput="updateParam('attractionStrength', this.value)">
+                        <span class="value-display" id="attractionStrength-value">0.15</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Repulsion Distance</label>
+                    <div class="slider-container">
+                        <input type="range" id="repulsionDist" min="10" max="60" value="30" oninput="updateParam('repulsionDist', this.value)">
+                        <span class="value-display" id="repulsionDist-value">30</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Trail Persistence</label>
+                    <div class="slider-container">
+                        <input type="range" id="trailPersistence" min="0.9" max="0.995" step="0.005" value="0.97" oninput="updateParam('trailPersistence', this.value)">
+                        <span class="value-display" id="trailPersistence-value">0.970</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Colors Section -->
+            <div class="control-section">
+                <h3>Liquid Glass Palette</h3>
+                <div class="color-group">
+                    <label>Deep Background</label>
+                    <div class="color-picker-container">
+                        <input type="color" id="bgDeep" value="#1A0A2E" onchange="updateColor('bgDeep', this.value)">
+                        <span class="color-hex" id="bgDeep-hex">#1A0A2E</span>
+                    </div>
+                </div>
+                <div class="color-group">
+                    <label>Vibrant Core</label>
+                    <div class="color-picker-container">
+                        <input type="color" id="coreColor" value="#A855F7" onchange="updateColor('coreColor', this.value)">
+                        <span class="color-hex" id="coreColor-hex">#A855F7</span>
+                    </div>
+                </div>
+                <div class="color-group">
+                    <label>Chrome Highlight</label>
+                    <div class="color-picker-container">
+                        <input type="color" id="highlightColor" value="#D8B4FE" onchange="updateColor('highlightColor', this.value)">
+                        <span class="color-hex" id="highlightColor-hex">#D8B4FE</span>
+                    </div>
+                </div>
+                <div class="color-group">
+                    <label>Energy Accent</label>
+                    <div class="color-picker-container">
+                        <input type="color" id="accentColor" value="#FF7BD1" onchange="updateColor('accentColor', this.value)">
+                        <span class="color-hex" id="accentColor-hex">#FF7BD1</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FIXED: Actions Section -->
+            <div class="control-section">
+                <h3>Actions</h3>
+                <div class="button-row">
+                    <button class="button" onclick="resetParameters()">Reset</button>
+                    <button class="button secondary" onclick="saveCanvas('liquid-resonance-' + params.seed)">Save</button>
+                </div>
+            </div>
+        </div>
+        <div class="canvas-area">
+            <div id="canvas-container"></div>
+        </div>
+    </div>
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // LIQUID RESONANCE — A Meticulously Crafted Generative Algorithm
+        // Social turbulence expressed through particle dynamics
+        // ═══════════════════════════════════════════════════════════════
+
+        let params = {
+            seed: 42,
+            particleCount: 400,
+            flowIntensity: 2.0,
+            noiseScale: 0.004,
+            turbulence: 0.8,
+            attractionStrength: 0.15,
+            repulsionDist: 30,
+            trailPersistence: 0.97,
+            // Colors
+            bgDeep: '#1A0A2E',
+            coreColor: '#A855F7',
+            highlightColor: '#D8B4FE',
+            accentColor: '#FF7BD1'
+        };
+
+        const defaultParams = { ...params };
+
+        let particles = [];
+        let trailBuffer;
+        let flowField;
+        let time = 0;
+        let attractors = [];
+
+        // Particle class with social charge dynamics
+        class Particle {
+            constructor() {
+                this.reset();
+                this.socialCharge = random(-1, 1);
+                this.resonanceFreq = random(0.5, 2);
+                this.trailHistory = [];
+                this.maxTrailLength = 15;
+            }
+
+            reset() {
+                // Spawn from edges or random positions
+                if (random() < 0.3) {
+                    // Edge spawn
+                    let edge = floor(random(4));
+                    switch(edge) {
+                        case 0: this.pos = createVector(random(width), 0); break;
+                        case 1: this.pos = createVector(width, random(height)); break;
+                        case 2: this.pos = createVector(random(width), height); break;
+                        case 3: this.pos = createVector(0, random(height)); break;
+                    }
+                } else {
+                    this.pos = createVector(random(width), random(height));
+                }
+                this.vel = createVector(0, 0);
+                this.acc = createVector(0, 0);
+                this.lifespan = random(200, 600);
+                this.age = 0;
+                this.trailHistory = [];
+            }
+
+            applyFlowField() {
+                // Multi-octave noise for rich turbulence
+                let scale1 = params.noiseScale;
+                let scale2 = params.noiseScale * 4;
+                let scale3 = params.noiseScale * 0.25;
+
+                // Layer 1: Global cultural current
+                let n1 = noise(this.pos.x * scale3, this.pos.y * scale3, time * 0.01);
+                // Layer 2: Local social weather
+                let n2 = noise(this.pos.x * scale1, this.pos.y * scale1, time * 0.02 + 100);
+                // Layer 3: Personal noise (modulated by social charge)
+                let n3 = noise(this.pos.x * scale2 + this.socialCharge * 50, this.pos.y * scale2, time * 0.05 + 200);
+
+                // Combine with weighted summation
+                let combinedNoise = n1 * 0.5 + n2 * 0.35 + n3 * 0.15 * params.turbulence;
+
+                // Add resonance frequency modulation
+                combinedNoise += sin(time * this.resonanceFreq * 0.1) * 0.05;
+
+                let angle = combinedNoise * TWO_PI * 3;
+                let flowForce = p5.Vector.fromAngle(angle);
+                flowForce.mult(params.flowIntensity * 0.1);
+
+                this.acc.add(flowForce);
+            }
+
+            applyAttractors() {
+                for (let attractor of attractors) {
+                    let force = p5.Vector.sub(attractor.pos, this.pos);
+                    let dist = force.mag();
+
+                    // Attraction at distance
+                    if (dist > params.repulsionDist && dist < 200) {
+                        force.normalize();
+                        let strength = params.attractionStrength * attractor.strength / (dist * 0.1);
+                        // Modulate by social charge compatibility
+                        strength *= (1 + this.socialCharge * attractor.charge * 0.5);
+                        force.mult(strength);
+                        this.acc.add(force);
+                    }
+                    // Repulsion up close
+                    else if (dist < params.repulsionDist && dist > 1) {
+                        force.normalize();
+                        force.mult(-0.5 / dist);
+                        this.acc.add(force);
+                    }
+                }
+            }
+
+            update() {
+                this.applyFlowField();
+                this.applyAttractors();
+
+                // Apply acceleration with damping
+                this.vel.add(this.acc);
+                this.vel.limit(4);
+                this.vel.mult(0.98);
+
+                // Store trail point
+                this.trailHistory.push(this.pos.copy());
+                if (this.trailHistory.length > this.maxTrailLength) {
+                    this.trailHistory.shift();
+                }
+
+                this.pos.add(this.vel);
+                this.acc.mult(0);
+
+                this.age++;
+
+                // Reset if out of bounds or too old
+                if (this.pos.x < -20 || this.pos.x > width + 20 ||
+                    this.pos.y < -20 || this.pos.y > height + 20 ||
+                    this.age > this.lifespan) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                let speed = this.vel.mag();
+                let normalizedSpeed = constrain(speed / 3, 0, 1);
+
+                // Color mapping based on velocity and social charge
+                let baseColor = color(params.coreColor);
+                let highlightCol = color(params.highlightColor);
+                let accentCol = color(params.accentColor);
+
+                // Lerp between colors based on speed
+                let particleColor;
+                if (normalizedSpeed < 0.5) {
+                    particleColor = lerpColor(baseColor, highlightCol, normalizedSpeed * 2);
+                } else {
+                    particleColor = lerpColor(highlightCol, accentCol, (normalizedSpeed - 0.5) * 2);
+                }
+
+                // Age-based alpha
+                let ageAlpha = map(this.age, 0, this.lifespan, 1, 0.3);
+                let alpha = ageAlpha * (0.3 + normalizedSpeed * 0.5);
+
+                // Draw trail
+                if (this.trailHistory.length > 1) {
+                    noFill();
+                    beginShape();
+                    for (let i = 0; i < this.trailHistory.length; i++) {
+                        let t = i / this.trailHistory.length;
+                        let trailAlpha = alpha * t * 0.6;
+                        let c = color(red(particleColor), green(particleColor), blue(particleColor), trailAlpha * 255);
+                        stroke(c);
+                        strokeWeight(1 + t * 2);
+                        vertex(this.trailHistory[i].x, this.trailHistory[i].y);
+                    }
+                    endShape();
+                }
+
+                // Draw particle with glow
+                noStroke();
+                // Outer glow
+                let glowColor = color(red(particleColor), green(particleColor), blue(particleColor), alpha * 80);
+                fill(glowColor);
+                ellipse(this.pos.x, this.pos.y, 8 + normalizedSpeed * 6);
+                // Core
+                let coreAlpha = alpha * 200 + normalizedSpeed * 55;
+                fill(red(particleColor), green(particleColor), blue(particleColor), coreAlpha);
+                ellipse(this.pos.x, this.pos.y, 3 + normalizedSpeed * 3);
+                // Hot center for fast particles
+                if (normalizedSpeed > 0.6) {
+                    fill(255, 255, 255, (normalizedSpeed - 0.6) * 400);
+                    ellipse(this.pos.x, this.pos.y, 2);
+                }
+            }
+        }
+
+        // Dynamic attractor class
+        class Attractor {
+            constructor(x, y) {
+                this.pos = createVector(x, y);
+                this.strength = random(0.5, 1.5);
+                this.charge = random(-1, 1);
+                this.phase = random(TWO_PI);
+                this.orbitRadius = random(20, 80);
+                this.orbitSpeed = random(0.005, 0.02);
+                this.basePos = createVector(x, y);
+            }
+
+            update() {
+                // Gentle orbital motion
+                this.pos.x = this.basePos.x + cos(time * this.orbitSpeed + this.phase) * this.orbitRadius;
+                this.pos.y = this.basePos.y + sin(time * this.orbitSpeed * 1.3 + this.phase) * this.orbitRadius * 0.7;
+
+                // Slowly drift strength
+                this.strength = 0.8 + sin(time * 0.01 + this.phase) * 0.4;
+            }
+        }
+
+        function setup() {
+            let canvas = createCanvas(1200, 1200);
+            canvas.parent('canvas-container');
+            colorMode(RGB, 255, 255, 255, 255);
+
+            initializeSystem();
+        }
+
+        function initializeSystem() {
+            randomSeed(params.seed);
+            noiseSeed(params.seed);
+            time = 0;
+
+            // Create trail buffer for accumulation
+            trailBuffer = createGraphics(width, height);
+            trailBuffer.colorMode(RGB, 255, 255, 255, 255);
+            trailBuffer.background(params.bgDeep);
+
+            // Initialize particles
+            particles = [];
+            for (let i = 0; i < params.particleCount; i++) {
+                particles.push(new Particle());
+            }
+
+            // Create dynamic attractors based on seed
+            attractors = [];
+            let numAttractors = floor(random(3, 7));
+            for (let i = 0; i < numAttractors; i++) {
+                let x = random(width * 0.2, width * 0.8);
+                let y = random(height * 0.2, height * 0.8);
+                attractors.push(new Attractor(x, y));
+            }
+        }
+
+        function draw() {
+            // Fade trail buffer for persistence effect
+            trailBuffer.noStroke();
+            let bgCol = color(params.bgDeep);
+            trailBuffer.fill(red(bgCol), green(bgCol), blue(bgCol), (1 - params.trailPersistence) * 60);
+            trailBuffer.rect(0, 0, width, height);
+
+            // Update attractors
+            for (let attractor of attractors) {
+                attractor.update();
+            }
+
+            // Update and draw particles to trail buffer
+            trailBuffer.push();
+            for (let particle of particles) {
+                particle.update();
+                drawParticleToBuffer(particle);
+            }
+            trailBuffer.pop();
+
+            // Draw trail buffer to main canvas
+            image(trailBuffer, 0, 0);
+
+            // Draw particles on top with full brightness
+            for (let particle of particles) {
+                particle.draw();
+            }
+
+            // Subtle vignette overlay
+            drawVignette();
+
+            // Add chrome glow accents at attractor positions
+            drawAttractorGlows();
+
+            time++;
+        }
+
+        function drawParticleToBuffer(particle) {
+            let speed = particle.vel.mag();
+            let normalizedSpeed = constrain(speed / 3, 0, 1);
+
+            let baseColor = color(params.coreColor);
+            let alpha = 10 + normalizedSpeed * 30;
+
+            trailBuffer.noStroke();
+            trailBuffer.fill(red(baseColor), green(baseColor), blue(baseColor), alpha);
+            trailBuffer.ellipse(particle.pos.x, particle.pos.y, 4 + normalizedSpeed * 4);
+        }
+
+        function drawVignette() {
+            // Radial vignette for depth
+            let gradient = drawingContext.createRadialGradient(
+                width/2, height/2, height * 0.3,
+                width/2, height/2, height * 0.8
+            );
+            gradient.addColorStop(0, 'rgba(26, 10, 46, 0)');
+            gradient.addColorStop(1, 'rgba(26, 10, 46, 0.6)');
+            drawingContext.fillStyle = gradient;
+            drawingContext.fillRect(0, 0, width, height);
+        }
+
+        function drawAttractorGlows() {
+            // Draw subtle glows at attractor positions
+            for (let attractor of attractors) {
+                let glowAlpha = map(attractor.strength, 0.4, 1.2, 20, 60);
+                let glowSize = map(attractor.strength, 0.4, 1.2, 60, 120);
+
+                let gradient = drawingContext.createRadialGradient(
+                    attractor.pos.x, attractor.pos.y, 0,
+                    attractor.pos.x, attractor.pos.y, glowSize
+                );
+
+                let highlightCol = color(params.highlightColor);
+                let r = red(highlightCol);
+                let g = green(highlightCol);
+                let b = blue(highlightCol);
+
+                gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${glowAlpha/255})`);
+                gradient.addColorStop(0.5, `rgba(${r}, ${g}, ${b}, ${glowAlpha/510})`);
+                gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+
+                drawingContext.fillStyle = gradient;
+                drawingContext.beginPath();
+                drawingContext.arc(attractor.pos.x, attractor.pos.y, glowSize, 0, TWO_PI);
+                drawingContext.fill();
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // UI CONTROLS
+        // ═══════════════════════════════════════════════════════════════
+
+        function updateSeed() {
+            params.seed = parseInt(document.getElementById('seed-input').value);
+            initializeSystem();
+        }
+
+        function previousSeed() {
+            params.seed--;
+            document.getElementById('seed-input').value = params.seed;
+            initializeSystem();
+        }
+
+        function nextSeed() {
+            params.seed++;
+            document.getElementById('seed-input').value = params.seed;
+            initializeSystem();
+        }
+
+        function randomSeedAndUpdate() {
+            params.seed = Math.floor(Math.random() * 999999);
+            document.getElementById('seed-input').value = params.seed;
+            initializeSystem();
+        }
+
+        function loadPreset(seed) {
+            params.seed = seed;
+            document.getElementById('seed-input').value = seed;
+            initializeSystem();
+        }
+
+        function updateParam(name, value) {
+            params[name] = parseFloat(value);
+            document.getElementById(name + '-value').textContent =
+                value.toString().includes('.') ? parseFloat(value).toFixed(3) : value;
+
+            // Special handling for particle count
+            if (name === 'particleCount') {
+                let diff = params.particleCount - particles.length;
+                if (diff > 0) {
+                    for (let i = 0; i < diff; i++) {
+                        particles.push(new Particle());
+                    }
+                } else if (diff < 0) {
+                    particles.splice(0, -diff);
+                }
+            }
+        }
+
+        function updateColor(id, value) {
+            params[id] = value;
+            document.getElementById(id + '-hex').textContent = value;
+        }
+
+        function resetParameters() {
+            Object.assign(params, defaultParams);
+
+            // Update all UI elements
+            document.getElementById('seed-input').value = params.seed;
+            document.getElementById('particleCount').value = params.particleCount;
+            document.getElementById('particleCount-value').textContent = params.particleCount;
+            document.getElementById('flowIntensity').value = params.flowIntensity;
+            document.getElementById('flowIntensity-value').textContent = params.flowIntensity.toFixed(1);
+            document.getElementById('noiseScale').value = params.noiseScale;
+            document.getElementById('noiseScale-value').textContent = params.noiseScale;
+            document.getElementById('turbulence').value = params.turbulence;
+            document.getElementById('turbulence-value').textContent = params.turbulence;
+            document.getElementById('attractionStrength').value = params.attractionStrength;
+            document.getElementById('attractionStrength-value').textContent = params.attractionStrength;
+            document.getElementById('repulsionDist').value = params.repulsionDist;
+            document.getElementById('repulsionDist-value').textContent = params.repulsionDist;
+            document.getElementById('trailPersistence').value = params.trailPersistence;
+            document.getElementById('trailPersistence-value').textContent = params.trailPersistence.toFixed(3);
+
+            document.getElementById('bgDeep').value = params.bgDeep;
+            document.getElementById('bgDeep-hex').textContent = params.bgDeep;
+            document.getElementById('coreColor').value = params.coreColor;
+            document.getElementById('coreColor-hex').textContent = params.coreColor;
+            document.getElementById('highlightColor').value = params.highlightColor;
+            document.getElementById('highlightColor-hex').textContent = params.highlightColor;
+            document.getElementById('accentColor').value = params.accentColor;
+            document.getElementById('accentColor-hex').textContent = params.accentColor;
+
+            initializeSystem();
+        }
+    </script>
+</body>
+</html>

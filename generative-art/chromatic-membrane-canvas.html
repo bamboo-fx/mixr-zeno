@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300&family=Space+Mono:wght@400&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #0a0a0a;
+        }
+
+        .canvas {
+            width: 1200px;
+            height: 1600px;
+            background: #0D0514;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Deep atmospheric base layers */
+        .atmosphere-1 {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(ellipse at 30% 70%, rgba(74, 29, 140, 0.15) 0%, transparent 50%);
+        }
+
+        .atmosphere-2 {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(ellipse at 70% 30%, rgba(124, 58, 237, 0.1) 0%, transparent 45%);
+        }
+
+        /* Primary membrane - large central form */
+        .membrane-primary {
+            position: absolute;
+            width: 680px;
+            height: 680px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%,
+                rgba(216, 180, 254, 0.08) 0%,
+                rgba(168, 85, 247, 0.12) 25%,
+                rgba(124, 58, 237, 0.15) 45%,
+                rgba(74, 29, 140, 0.18) 65%,
+                rgba(45, 27, 78, 0.12) 80%,
+                transparent 100%);
+            box-shadow:
+                inset 0 0 120px rgba(168, 85, 247, 0.1),
+                0 0 200px rgba(124, 58, 237, 0.15);
+        }
+
+        /* Secondary membrane - offset ring */
+        .membrane-secondary {
+            position: absolute;
+            width: 520px;
+            height: 520px;
+            top: calc(50% + 40px);
+            left: calc(50% - 60px);
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 1px solid rgba(216, 180, 254, 0.08);
+            background: radial-gradient(circle at 60% 40%,
+                rgba(255, 123, 209, 0.06) 0%,
+                rgba(168, 85, 247, 0.08) 30%,
+                transparent 70%);
+        }
+
+        /* Tertiary membrane - smaller offset */
+        .membrane-tertiary {
+            position: absolute;
+            width: 380px;
+            height: 380px;
+            top: calc(50% - 80px);
+            left: calc(50% + 100px);
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: radial-gradient(circle at 40% 60%,
+                rgba(216, 180, 254, 0.1) 0%,
+                rgba(124, 58, 237, 0.06) 40%,
+                transparent 70%);
+        }
+
+        /* Concentric rings - pulsation rhythm */
+        .ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .ring-1 {
+            width: 200px;
+            height: 200px;
+            border-color: rgba(216, 180, 254, 0.25);
+        }
+
+        .ring-2 {
+            width: 280px;
+            height: 280px;
+            border-color: rgba(168, 85, 247, 0.18);
+        }
+
+        .ring-3 {
+            width: 400px;
+            height: 400px;
+            border-color: rgba(124, 58, 237, 0.12);
+        }
+
+        .ring-4 {
+            width: 560px;
+            height: 560px;
+            border-color: rgba(74, 29, 140, 0.1);
+        }
+
+        .ring-5 {
+            width: 780px;
+            height: 780px;
+            border-color: rgba(45, 27, 78, 0.08);
+        }
+
+        /* Luminous core */
+        .core {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: radial-gradient(circle,
+                rgba(255, 255, 255, 0.9) 0%,
+                rgba(216, 180, 254, 0.7) 20%,
+                rgba(168, 85, 247, 0.4) 40%,
+                rgba(124, 58, 237, 0.2) 60%,
+                transparent 100%);
+            box-shadow:
+                0 0 60px rgba(216, 180, 254, 0.5),
+                0 0 120px rgba(168, 85, 247, 0.3),
+                0 0 180px rgba(124, 58, 237, 0.2);
+        }
+
+        .core-inner {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+        }
+
+        /* Floating apertures */
+        .aperture {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle,
+                rgba(168, 85, 247, 0.15) 0%,
+                rgba(124, 58, 237, 0.08) 50%,
+                transparent 100%);
+        }
+
+        .aperture-1 {
+            width: 120px;
+            height: 120px;
+            top: 180px;
+            left: 200px;
+            border: 1px solid rgba(216, 180, 254, 0.12);
+        }
+
+        .aperture-2 {
+            width: 90px;
+            height: 90px;
+            top: 320px;
+            right: 180px;
+            border: 1px solid rgba(168, 85, 247, 0.1);
+        }
+
+        .aperture-3 {
+            width: 60px;
+            height: 60px;
+            bottom: 280px;
+            left: 260px;
+            border: 1px solid rgba(124, 58, 237, 0.15);
+        }
+
+        .aperture-4 {
+            width: 140px;
+            height: 140px;
+            bottom: 200px;
+            right: 220px;
+            border: 1px solid rgba(216, 180, 254, 0.08);
+        }
+
+        /* Small luminous points */
+        .point {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(216, 180, 254, 0.9);
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+        }
+
+        .point-1 { width: 4px; height: 4px; top: 240px; left: 380px; }
+        .point-2 { width: 3px; height: 3px; top: 420px; left: 280px; }
+        .point-3 { width: 5px; height: 5px; top: 560px; right: 340px; }
+        .point-4 { width: 3px; height: 3px; top: 380px; right: 280px; }
+        .point-5 { width: 4px; height: 4px; bottom: 380px; left: 420px; }
+        .point-6 { width: 3px; height: 3px; bottom: 460px; right: 400px; }
+        .point-7 { width: 4px; height: 4px; top: 680px; left: 500px; }
+        .point-8 { width: 3px; height: 3px; top: 720px; right: 480px; }
+
+        /* Spectral typography */
+        .text-element {
+            position: absolute;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 0.15em;
+            color: rgba(216, 180, 254, 0.4);
+        }
+
+        .title {
+            position: absolute;
+            top: 80px;
+            left: 80px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 0.4em;
+            color: rgba(216, 180, 254, 0.35);
+            text-transform: uppercase;
+        }
+
+        .index-top {
+            top: 82px;
+            right: 80px;
+            font-size: 9px;
+        }
+
+        .index-bottom {
+            bottom: 80px;
+            left: 80px;
+            font-size: 9px;
+        }
+
+        .coord-1 {
+            top: 200px;
+            left: 160px;
+            font-size: 8px;
+        }
+
+        .coord-2 {
+            top: 340px;
+            right: 140px;
+            font-size: 8px;
+        }
+
+        .coord-3 {
+            bottom: 300px;
+            left: 220px;
+            font-size: 8px;
+        }
+
+        .coord-4 {
+            bottom: 220px;
+            right: 180px;
+            font-size: 8px;
+        }
+
+        .footer-text {
+            position: absolute;
+            bottom: 80px;
+            right: 80px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 0.3em;
+            color: rgba(168, 85, 247, 0.3);
+            text-transform: uppercase;
+        }
+
+        /* Thin rule lines */
+        .rule-h {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(168, 85, 247, 0.15) 20%,
+                rgba(168, 85, 247, 0.15) 80%,
+                transparent 100%);
+        }
+
+        .rule-top {
+            top: 120px;
+            left: 80px;
+            right: 80px;
+        }
+
+        .rule-bottom {
+            bottom: 120px;
+            left: 80px;
+            right: 80px;
+        }
+
+        .rule-v {
+            position: absolute;
+            width: 1px;
+            background: linear-gradient(180deg,
+                transparent 0%,
+                rgba(168, 85, 247, 0.1) 20%,
+                rgba(168, 85, 247, 0.1) 80%,
+                transparent 100%);
+        }
+
+        .rule-left {
+            left: 120px;
+            top: 120px;
+            bottom: 120px;
+        }
+
+        .rule-right {
+            right: 120px;
+            top: 120px;
+            bottom: 120px;
+        }
+
+        /* Corner markers */
+        .corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+        }
+
+        .corner-tl {
+            top: 60px;
+            left: 60px;
+            border-top: 1px solid rgba(216, 180, 254, 0.2);
+            border-left: 1px solid rgba(216, 180, 254, 0.2);
+        }
+
+        .corner-tr {
+            top: 60px;
+            right: 60px;
+            border-top: 1px solid rgba(216, 180, 254, 0.2);
+            border-right: 1px solid rgba(216, 180, 254, 0.2);
+        }
+
+        .corner-bl {
+            bottom: 60px;
+            left: 60px;
+            border-bottom: 1px solid rgba(216, 180, 254, 0.2);
+            border-left: 1px solid rgba(216, 180, 254, 0.2);
+        }
+
+        .corner-br {
+            bottom: 60px;
+            right: 60px;
+            border-bottom: 1px solid rgba(216, 180, 254, 0.2);
+            border-right: 1px solid rgba(216, 180, 254, 0.2);
+        }
+
+        /* Subtle vignette */
+        .vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center,
+                transparent 40%,
+                rgba(13, 5, 20, 0.4) 100%);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="canvas">
+        <!-- Atmospheric layers -->
+        <div class="atmosphere-1"></div>
+        <div class="atmosphere-2"></div>
+
+        <!-- Structure rules -->
+        <div class="rule-h rule-top"></div>
+        <div class="rule-h rule-bottom"></div>
+        <div class="rule-v rule-left"></div>
+        <div class="rule-v rule-right"></div>
+
+        <!-- Corner markers -->
+        <div class="corner corner-tl"></div>
+        <div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div>
+        <div class="corner corner-br"></div>
+
+        <!-- Concentric rings -->
+        <div class="ring ring-5"></div>
+        <div class="ring ring-4"></div>
+        <div class="ring ring-3"></div>
+        <div class="ring ring-2"></div>
+        <div class="ring ring-1"></div>
+
+        <!-- Membrane layers -->
+        <div class="membrane-primary"></div>
+        <div class="membrane-secondary"></div>
+        <div class="membrane-tertiary"></div>
+
+        <!-- Floating apertures -->
+        <div class="aperture aperture-1"></div>
+        <div class="aperture aperture-2"></div>
+        <div class="aperture aperture-3"></div>
+        <div class="aperture aperture-4"></div>
+
+        <!-- Luminous core -->
+        <div class="core"></div>
+        <div class="core-inner"></div>
+
+        <!-- Small points -->
+        <div class="point point-1"></div>
+        <div class="point point-2"></div>
+        <div class="point point-3"></div>
+        <div class="point point-4"></div>
+        <div class="point point-5"></div>
+        <div class="point point-6"></div>
+        <div class="point point-7"></div>
+        <div class="point point-8"></div>
+
+        <!-- Spectral typography -->
+        <div class="title">Chromatic Membrane</div>
+        <div class="text-element index-top">CM — 001</div>
+        <div class="text-element index-bottom">Depth Study</div>
+        <div class="text-element coord-1">α.1</div>
+        <div class="text-element coord-2">β.2</div>
+        <div class="text-element coord-3">γ.3</div>
+        <div class="text-element coord-4">δ.4</div>
+        <div class="footer-text">Translucent Topologies</div>
+
+        <!-- Vignette overlay -->
+        <div class="vignette"></div>
+    </div>
+</body>
+</html>
