@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,142 +11,37 @@ import {
   Image,
   LayoutAnimation,
   UIManager,
+  ScrollView,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, User } from 'lucide-react-native';
-import Animated, {
-  FadeIn,
-  FadeOut,
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withTiming,
-  withDelay,
-  withSequence,
-  Easing,
-} from 'react-native-reanimated';
+import { Eye, EyeOff, ArrowRight } from 'lucide-react-native';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { authClient } from '@/lib/auth/auth-client';
 import { useInvalidateSession } from '@/lib/auth/use-session';
-import { MetalButton } from '@/components/gel/MetalButton';
 
-// Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-// Shimmering star component with 4-point star shape
-function SparklingStar({ size, top, left, right, delay }: { size: 'large' | 'medium' | 'small'; top: string; left?: string; right?: string; delay: number }) {
-  const opacity = useSharedValue(size === 'large' ? 0.9 : size === 'medium' ? 0.7 : 0.5);
-  const scale = useSharedValue(1);
-  const rotation = useSharedValue(0);
+// Design tokens
+const C = {
+  bg: '#000000',
+  surface: '#111111',
+  surface2: '#181818',
+  surface3: 'rgba(255,255,255,0.06)',
+  ink: '#FFFFFF',
+  ink2: '#888888',
+  ink3: '#7A7A7A',
+  amber: '#FF8547',
+  crimson: '#FF405E',
+} as const;
 
-  const baseSize = size === 'large' ? 16 : size === 'medium' ? 10 : 6;
-
-  useEffect(() => {
-    opacity.value = withDelay(
-      delay,
-      withRepeat(
-        withSequence(
-          withTiming(0.15, { duration: 800 + Math.random() * 600, easing: Easing.inOut(Easing.ease) }),
-          withTiming(size === 'large' ? 1 : size === 'medium' ? 0.85 : 0.7, { duration: 800 + Math.random() * 600, easing: Easing.inOut(Easing.ease) })
-        ),
-        -1,
-        true
-      )
-    );
-
-    scale.value = withDelay(
-      delay + 200,
-      withRepeat(
-        withSequence(
-          withTiming(0.7, { duration: 1000 + Math.random() * 500, easing: Easing.inOut(Easing.ease) }),
-          withTiming(1.2, { duration: 1000 + Math.random() * 500, easing: Easing.inOut(Easing.ease) })
-        ),
-        -1,
-        true
-      )
-    );
-
-    rotation.value = withDelay(
-      delay,
-      withRepeat(
-        withTiming(45, { duration: 3000 + Math.random() * 2000, easing: Easing.inOut(Easing.ease) }),
-        -1,
-        true
-      )
-    );
-  }, []);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [
-      { scale: scale.value },
-      { rotate: `${rotation.value}deg` },
-    ],
-  }));
-
-  const glowColor = size === 'large' ? '#C084FC' : size === 'medium' ? '#A855F7' : '#9333EA';
-
-  return (
-    <Animated.View
-      style={[
-        {
-          position: 'absolute',
-          width: baseSize,
-          height: baseSize,
-          top: top as `${number}%`,
-          left: left as `${number}%` | undefined,
-          right: right as `${number}%` | undefined,
-          alignItems: 'center',
-          justifyContent: 'center',
-        },
-        animatedStyle
-      ]}
-    >
-      <View
-        style={{
-          position: 'absolute',
-          width: baseSize * 0.15,
-          height: baseSize,
-          backgroundColor: '#FFFFFF',
-          borderRadius: baseSize * 0.1,
-          shadowColor: glowColor,
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 1,
-          shadowRadius: baseSize * 0.5,
-        }}
-      />
-      <View
-        style={{
-          position: 'absolute',
-          width: baseSize,
-          height: baseSize * 0.15,
-          backgroundColor: '#FFFFFF',
-          borderRadius: baseSize * 0.1,
-          shadowColor: glowColor,
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 1,
-          shadowRadius: baseSize * 0.5,
-        }}
-      />
-      <View
-        style={{
-          position: 'absolute',
-          width: baseSize * 0.35,
-          height: baseSize * 0.35,
-          backgroundColor: '#FFFFFF',
-          borderRadius: baseSize,
-          shadowColor: '#FFFFFF',
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 1,
-          shadowRadius: baseSize * 0.3,
-        }}
-      />
-    </Animated.View>
-  );
-}
+const F = {
+  regular: 'Inter-Regular',
+  medium: 'Inter-Medium',
+  semibold: 'Inter-SemiBold',
+  bold: 'Inter-Bold',
+} as const;
 
 export default function SignInScreen() {
   const insets = useSafeAreaInsets();
@@ -163,9 +58,8 @@ export default function SignInScreen() {
   const isSignUp = mode === 'signup';
 
   const handleModeSwitch = (newMode: 'signin' | 'signup') => {
-    // Smooth spring-like layout animation for height change
     LayoutAnimation.configureNext({
-      duration: 280,
+      duration: 240,
       create: { type: 'easeInEaseOut', property: 'opacity' },
       update: { type: 'spring', springDamping: 0.85 },
       delete: { type: 'easeInEaseOut', property: 'opacity' },
@@ -225,243 +119,158 @@ export default function SignInScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Purple starry night gradient background */}
-      <LinearGradient
-        colors={['#1a0a2e', '#120820', '#0a0515', '#050208']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.backgroundGradient}
-      />
-
-      {/* Sparkling stars layer */}
-      <View style={styles.starsContainer} pointerEvents="none">
-        <SparklingStar size="large" top="8%" left="15%" delay={0} />
-        <SparklingStar size="large" top="12%" right="20%" delay={500} />
-        <SparklingStar size="large" top="25%" left="80%" delay={1000} />
-        <SparklingStar size="large" top="45%" left="8%" delay={1500} />
-        <SparklingStar size="large" top="60%" right="12%" delay={2000} />
-        <SparklingStar size="large" top="88%" left="35%" delay={2500} />
-        <SparklingStar size="large" top="92%" right="40%" delay={3000} />
-        <SparklingStar size="medium" top="5%" left="45%" delay={200} />
-        <SparklingStar size="medium" top="18%" left="30%" delay={700} />
-        <SparklingStar size="medium" top="15%" right="35%" delay={1200} />
-        <SparklingStar size="medium" top="35%" left="25%" delay={1700} />
-        <SparklingStar size="medium" top="40%" right="30%" delay={2200} />
-        <SparklingStar size="medium" top="55%" left="40%" delay={2700} />
-        <SparklingStar size="medium" top="70%" left="18%" delay={3200} />
-        <SparklingStar size="medium" top="75%" right="25%" delay={3700} />
-        <SparklingStar size="medium" top="82%" left="60%" delay={4200} />
-        <SparklingStar size="medium" top="95%" left="12%" delay={4700} />
-        <SparklingStar size="small" top="3%" left="25%" delay={100} />
-        <SparklingStar size="small" top="7%" right="40%" delay={400} />
-        <SparklingStar size="small" top="10%" left="60%" delay={600} />
-        <SparklingStar size="small" top="20%" left="12%" delay={900} />
-        <SparklingStar size="small" top="22%" right="15%" delay={1100} />
-        <SparklingStar size="small" top="30%" left="50%" delay={1400} />
-        <SparklingStar size="small" top="38%" left="70%" delay={1600} />
-        <SparklingStar size="small" top="48%" right="45%" delay={1900} />
-        <SparklingStar size="small" top="52%" left="22%" delay={2100} />
-        <SparklingStar size="small" top="65%" right="35%" delay={2400} />
-        <SparklingStar size="small" top="72%" left="55%" delay={2600} />
-        <SparklingStar size="small" top="80%" left="10%" delay={2900} />
-        <SparklingStar size="small" top="85%" right="18%" delay={3100} />
-        <SparklingStar size="small" top="90%" left="48%" delay={3400} />
-        <SparklingStar size="small" top="78%" right="8%" delay={3600} />
-      </View>
-
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
       >
-        <View
-          style={[
-            styles.contentWrapper,
-            { paddingTop: insets.top, paddingBottom: insets.bottom + 24 },
+        <ScrollView
+          contentContainerStyle={[
+            styles.scroll,
+            { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 },
           ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
           {/* Logo */}
-          <Animated.View entering={FadeIn.duration(600)} style={styles.logoContainer}>
+          <View style={styles.logoRow}>
             <Image
               source={require('../../assets/images/mixr-logo.png')}
               style={styles.logo}
               resizeMode="contain"
             />
-          </Animated.View>
+          </View>
 
-          {/* Tagline */}
-          <Text style={styles.tagline}>The Social App For The 5C's</Text>
+          {/* Hero */}
+          <Text style={styles.hero}>
+            {isSignUp ? (
+              <>
+                Join the <Text style={styles.heroAccent}>5C</Text> nights.
+              </>
+            ) : (
+              <>
+                Welcome back <Text style={styles.heroAccent}>to mixr.</Text>
+              </>
+            )}
+          </Text>
+          <Text style={styles.subhero}>
+            {isSignUp
+              ? 'Create your account with your .edu email.'
+              : 'Sign in to plan your next mix.'}
+          </Text>
 
-          {/* Glass Card */}
-          <Animated.View entering={FadeIn.duration(600).delay(150)}>
-            <LinearGradient
-              colors={['rgba(255,255,255,0.1)', 'rgba(147,51,234,0.3)', 'rgba(255,255,255,0.05)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.cardBorder}
+          {/* Segmented control */}
+          <View style={styles.segment}>
+            <Pressable
+              style={[styles.segmentTab, !isSignUp && styles.segmentTabActive]}
+              onPress={() => handleModeSwitch('signin')}
             >
-              <BlurView intensity={60} tint="dark" style={styles.cardBlur}>
-                <View style={styles.cardInner}>
-                  {/* Shine line at top */}
-                  <LinearGradient
-                    colors={['transparent', 'rgba(255,255,255,0.25)', 'transparent']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.shineLine}
-                  />
+              <Text style={[styles.segmentText, !isSignUp && styles.segmentTextActive]}>
+                Sign in
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.segmentTab, isSignUp && styles.segmentTabActive]}
+              onPress={() => handleModeSwitch('signup')}
+            >
+              <Text style={[styles.segmentText, isSignUp && styles.segmentTextActive]}>
+                Sign up
+              </Text>
+            </Pressable>
+          </View>
 
-                  {/* Tabs */}
-                  <View style={styles.tabs}>
-                    <Pressable
-                      style={[styles.tab, !isSignUp && styles.tabActive]}
-                      onPress={() => handleModeSwitch('signin')}
-                    >
-                      {!isSignUp && <View style={styles.tabGlow} />}
-                      <Text style={[styles.tabText, !isSignUp && styles.tabTextActive]}>Sign In</Text>
-                    </Pressable>
-                    <Pressable
-                      style={[styles.tab, isSignUp && styles.tabActive]}
-                      onPress={() => handleModeSwitch('signup')}
-                    >
-                      {isSignUp && <View style={styles.tabGlow} />}
-                      <Text style={[styles.tabText, isSignUp && styles.tabTextActive]}>Sign Up</Text>
-                    </Pressable>
-                  </View>
+          {/* Form */}
+          <View style={styles.form}>
+            {isSignUp && (
+              <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)}>
+                <Text style={styles.label}>Full name</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Alex Chen"
+                  placeholderTextColor={C.ink3}
+                  value={name}
+                  onChangeText={setName}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  selectionColor={C.crimson}
+                />
+              </Animated.View>
+            )}
 
-                  {/* Heading */}
-                  <Text style={styles.heading}>{isSignUp ? 'Create account' : 'Welcome back'}</Text>
-                  <Text style={styles.subheading}>
-                    {isSignUp ? 'Join the exclusive 5C community' : 'Sign in to mix'}
-                  </Text>
+            <View>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="you@school.edu"
+                placeholderTextColor={C.ink3}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                selectionColor={C.crimson}
+              />
+            </View>
 
-                  {/* Form */}
-                  <View style={styles.form}>
-                    {isSignUp && (
-                      <Animated.View
-                        entering={FadeIn.duration(200)}
-                        exiting={FadeOut.duration(150)}
-                      >
-                        <LinearGradient
-                          colors={['rgba(255,255,255,0.08)', 'rgba(147,51,234,0.2)']}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 1 }}
-                          style={styles.inputBorder}
-                        >
-                          <View style={styles.inputInner}>
-                            <User size={20} color="rgba(192,132,252,0.5)" strokeWidth={1.5} />
-                            <TextInput
-                              style={styles.input}
-                              placeholder="Full name"
-                              placeholderTextColor="rgba(192,132,252,0.4)"
-                              value={name}
-                              onChangeText={setName}
-                              autoCapitalize="words"
-                              autoCorrect={false}
-                              selectionColor="#A855F7"
-                            />
-                          </View>
-                        </LinearGradient>
-                      </Animated.View>
-                    )}
-
-                    <LinearGradient
-                      colors={['rgba(255,255,255,0.08)', 'rgba(147,51,234,0.2)']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.inputBorder}
-                    >
-                      <View style={styles.inputInner}>
-                        <Mail size={20} color="rgba(192,132,252,0.5)" strokeWidth={1.5} />
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Email address"
-                          placeholderTextColor="rgba(192,132,252,0.4)"
-                          value={email}
-                          onChangeText={setEmail}
-                          keyboardType="email-address"
-                          autoCapitalize="none"
-                          autoCorrect={false}
-                          selectionColor="#A855F7"
-                        />
-                      </View>
-                    </LinearGradient>
-
-                    <LinearGradient
-                      colors={['rgba(255,255,255,0.08)', 'rgba(147,51,234,0.2)']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.inputBorder}
-                    >
-                      <View style={styles.inputInner}>
-                        <Lock size={20} color="rgba(192,132,252,0.5)" strokeWidth={1.5} />
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Password"
-                          placeholderTextColor="rgba(192,132,252,0.4)"
-                          value={password}
-                          onChangeText={setPassword}
-                          secureTextEntry={!showPassword}
-                          autoCapitalize="none"
-                          autoCorrect={false}
-                          selectionColor="#A855F7"
-                        />
-                        <Pressable onPress={() => setShowPassword(!showPassword)} hitSlop={12}>
-                          {showPassword ? (
-                            <EyeOff size={20} color="rgba(192,132,252,0.5)" strokeWidth={1.5} />
-                          ) : (
-                            <Eye size={20} color="rgba(192,132,252,0.5)" strokeWidth={1.5} />
-                          )}
-                        </Pressable>
-                      </View>
-                    </LinearGradient>
-                  </View>
-
-                  {/* Error */}
-                  {error && (
-                    <Animated.View entering={FadeIn.duration(200)} style={styles.errorBox}>
-                      <Text style={styles.errorText}>{error}</Text>
-                    </Animated.View>
+            <View>
+              <Text style={styles.label}>Password</Text>
+              <View style={styles.passwordRow}>
+                <TextInput
+                  style={[styles.input, styles.passwordInput]}
+                  placeholder="••••••••"
+                  placeholderTextColor={C.ink3}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  selectionColor={C.crimson}
+                />
+                <Pressable
+                  style={styles.eyeBtn}
+                  onPress={() => setShowPassword(!showPassword)}
+                  hitSlop={12}
+                >
+                  {showPassword ? (
+                    <EyeOff size={18} color={C.ink2} strokeWidth={1.75} />
+                  ) : (
+                    <Eye size={18} color={C.ink2} strokeWidth={1.75} />
                   )}
+                </Pressable>
+              </View>
+            </View>
+          </View>
 
-                  {/* Submit Button */}
-                  <MetalButton
-                    variant="primary"
-                    onPress={handleSubmit}
-                    disabled={isLoading}
-                    fullWidth
-                  >
-                    {isLoading ? (
-                      <ActivityIndicator color="#fff" size="small" />
-                    ) : (
-                      <>
-                        <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>
-                          {isSignUp ? 'Sign Up' : 'Sign In'}
-                        </Text>
-                        <ArrowRight size={20} color="#fff" strokeWidth={2.5} />
-                      </>
-                    )}
-                  </MetalButton>
+          {/* Error */}
+          {error && (
+            <Animated.View entering={FadeIn.duration(200)} style={styles.errorBox}>
+              <Text style={styles.errorText}>{error}</Text>
+            </Animated.View>
+          )}
 
-                  {/* Divider */}
-                  <View style={styles.divider}>
-                    <View style={styles.dividerLine} />
-                    <Text style={styles.dividerText}>OR</Text>
-                    <View style={styles.dividerLine} />
-                  </View>
+          {/* CTA */}
+          <Pressable
+            style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed, isLoading && styles.ctaDisabled]}
+            onPress={handleSubmit}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color={C.bg} size="small" />
+            ) : (
+              <>
+                <Text style={styles.ctaText}>{isSignUp ? 'Create account' : 'Sign in'}</Text>
+                <ArrowRight size={18} color={C.bg} strokeWidth={2.5} />
+              </>
+            )}
+          </Pressable>
 
-                  {/* Toggle */}
-                  <Pressable onPress={() => handleModeSwitch(isSignUp ? 'signin' : 'signup')}>
-                    <Text style={styles.toggleText}>
-                      {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
-                      <Text style={styles.toggleLink}>{isSignUp ? 'Sign in' : 'Sign up'}</Text>
-                      <Text style={styles.toggleArrow}> →</Text>
-                    </Text>
-                  </Pressable>
-                </View>
-              </BlurView>
-            </LinearGradient>
-          </Animated.View>
-        </View>
+          {/* Footer toggle */}
+          <Pressable onPress={() => handleModeSwitch(isSignUp ? 'signin' : 'signup')} style={styles.footer}>
+            <Text style={styles.footerText}>
+              {isSignUp ? 'Already have an account? ' : "New to mixr? "}
+              <Text style={styles.footerLink}>{isSignUp ? 'Sign in' : 'Sign up'}</Text>
+            </Text>
+          </Pressable>
+        </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );
@@ -470,196 +279,152 @@ export default function SignInScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#08050d',
+    backgroundColor: C.bg,
   },
-  backgroundGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  starsContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  flex: {
-    flex: 1,
-  },
-  contentWrapper: {
-    flex: 1,
+  flex: { flex: 1 },
+  scroll: {
+    flexGrow: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
   },
 
-  // Logo
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: -20,
-    marginTop: -30,
+  logoRow: {
+    alignItems: 'flex-start',
+    marginBottom: 32,
   },
   logo: {
-    width: 280,
-    height: 140,
-  },
-  tagline: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#C084FC',
-    marginBottom: 24,
-    marginTop: -10,
-    letterSpacing: 1,
-    textAlign: 'center',
+    width: 120,
+    height: 40,
   },
 
-  // Card
-  cardBorder: {
-    borderRadius: 28,
-    padding: 1,
+  hero: {
+    fontFamily: F.bold,
+    fontSize: 36,
+    lineHeight: 40,
+    color: C.ink,
+    letterSpacing: -0.8,
+    marginBottom: 10,
   },
-  cardBlur: {
-    borderRadius: 26,
-    overflow: 'hidden',
+  heroAccent: {
+    color: C.amber,
+    fontFamily: F.bold,
   },
-  cardInner: {
-    backgroundColor: 'rgba(120,50,180,0.08)',
-    padding: 32,
-    paddingTop: 36,
-    position: 'relative',
-  },
-  shineLine: {
-    position: 'absolute',
-    top: 0,
-    left: '10%',
-    right: '10%',
-    height: 1,
+  subhero: {
+    fontFamily: F.regular,
+    fontSize: 15,
+    color: C.ink2,
+    marginBottom: 28,
   },
 
-  // Tabs
-  tabs: {
+  segment: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    borderRadius: 50,
+    backgroundColor: C.surface,
+    borderRadius: 12,
     padding: 4,
-    marginBottom: 28,
+    marginBottom: 24,
   },
-  tab: {
+  segmentTab: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 10,
     alignItems: 'center',
-    borderRadius: 50,
-    position: 'relative',
-    overflow: 'hidden',
+    borderRadius: 9,
   },
-  tabActive: {
-    backgroundColor: 'rgba(147,51,234,0.3)',
+  segmentTabActive: {
+    backgroundColor: C.surface2,
   },
-  tabGlow: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(139,92,246,0.15)',
-    shadowColor: '#A855F7',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-  },
-  tabText: {
+  segmentText: {
+    fontFamily: F.medium,
     fontSize: 14,
-    fontWeight: '500',
-    color: 'rgba(192,132,252,0.4)',
+    color: C.ink3,
   },
-  tabTextActive: {
-    color: '#F0E6FF',
-    fontWeight: '600',
+  segmentTextActive: {
+    color: C.ink,
   },
 
-  // Heading
-  heading: {
-    fontSize: 32,
-    fontWeight: '400',
-    color: '#E0DFF4',
-    marginBottom: 8,
-    fontFamily: 'PlayfairDisplay-Regular',
-    letterSpacing: -0.64,
-    lineHeight: 35,
-    textAlign: 'center',
-  },
-  subheading: {
-    fontSize: 14,
-    color: '#C084FC',
-    marginBottom: 28,
-    textAlign: 'center',
-  },
-
-  // Form
   form: {
     gap: 16,
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  inputBorder: {
-    borderRadius: 14,
-    padding: 1,
-  },
-  inputInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(10,5,20,0.7)',
-    borderRadius: 13,
-    paddingHorizontal: 16,
-    height: 56,
-    gap: 12,
+  label: {
+    fontFamily: F.medium,
+    fontSize: 12,
+    color: C.ink2,
+    marginBottom: 8,
+    letterSpacing: 0.2,
   },
   input: {
-    flex: 1,
+    backgroundColor: C.surface,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 52,
+    color: C.ink,
+    fontFamily: F.regular,
     fontSize: 15,
-    color: '#F0E6FF',
+  },
+  passwordRow: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  passwordInput: {
+    paddingRight: 48,
+  },
+  eyeBtn: {
+    position: 'absolute',
+    right: 14,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    paddingHorizontal: 4,
   },
 
-  // Error
   errorBox: {
-    backgroundColor: 'rgba(239,68,68,0.12)',
+    backgroundColor: 'rgba(255,64,94,0.12)',
     borderRadius: 10,
-    padding: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginTop: 4,
     marginBottom: 16,
   },
   errorText: {
+    fontFamily: F.medium,
     fontSize: 13,
-    color: '#F87171',
-    textAlign: 'center',
+    color: C.crimson,
   },
 
-  // Divider
-  divider: {
+  cta: {
+    backgroundColor: C.ink,
+    borderRadius: 14,
+    height: 54,
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 24,
-    gap: 12,
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 8,
   },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(147,51,234,0.2)',
+  ctaPressed: {
+    backgroundColor: '#E5E5E5',
   },
-  dividerText: {
-    fontSize: 11,
-    color: 'rgba(192,132,252,0.4)',
-    letterSpacing: 2,
+  ctaDisabled: {
+    opacity: 0.6,
+  },
+  ctaText: {
+    fontFamily: F.semibold,
+    fontSize: 15,
+    color: C.bg,
+    letterSpacing: -0.1,
   },
 
-  // Toggle
-  toggleText: {
+  footer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  footerText: {
+    fontFamily: F.regular,
     fontSize: 14,
-    color: 'rgba(192,132,252,0.5)',
-    textAlign: 'center',
+    color: C.ink2,
   },
-  toggleLink: {
-    color: '#F0E6FF',
-    fontWeight: '600',
-    textDecorationLine: 'underline',
-  },
-  toggleArrow: {
-    color: '#F0E6FF',
+  footerLink: {
+    fontFamily: F.semibold,
+    color: C.ink,
   },
 });
