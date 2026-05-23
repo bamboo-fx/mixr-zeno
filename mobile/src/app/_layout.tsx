@@ -18,6 +18,12 @@ import {
   PlayfairDisplay_600SemiBold,
   PlayfairDisplay_700Bold,
 } from '@expo-google-fonts/playfair-display';
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from '@expo-google-fonts/inter';
 
 export const unstable_settings = {
   initialRouteName: '(app)',
@@ -143,6 +149,10 @@ export default function RootLayout() {
     'PlayfairDisplay-Medium': PlayfairDisplay_500Medium,
     'PlayfairDisplay-SemiBold': PlayfairDisplay_600SemiBold,
     'PlayfairDisplay-Bold': PlayfairDisplay_700Bold,
+    'Inter-Regular': Inter_400Regular,
+    'Inter-Medium': Inter_500Medium,
+    'Inter-SemiBold': Inter_600SemiBold,
+    'Inter-Bold': Inter_700Bold,
   });
 
   useEffect(() => {

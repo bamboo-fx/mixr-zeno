@@ -1,5 +1,6 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "template-app-53",
@@ -8,6 +9,7 @@
         "@better-auth/expo": "^1.4.18",
         "@bottom-tabs/react-navigation": "^0.12.2",
         "@codeherence/react-native-header": "^1.0.0",
+        "@expo-google-fonts/inter": "^0.4.2",
         "@expo-google-fonts/playfair-display": "^0.4.2",
         "@expo/html-elements": "^0.13.7",
         "@expo/metro-runtime": "~5.0.5",
@@ -418,6 +420,8 @@
     "@eslint/object-schema": ["@eslint/object-schema@2.1.7", "", {}, "sha512-VtAOaymWVfZcmZbp6E2mympDIHvyjXs/12LqWYjVw6qjrfF+VK+fyG33kChz3nnK+SU5/NeHOqrTEHS8sXO3OA=="],
 
     "@eslint/plugin-kit": ["@eslint/plugin-kit@0.4.1", "", { "dependencies": { "@eslint/core": "^0.17.0", "levn": "^0.4.1" } }, "sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA=="],
+
+    "@expo-google-fonts/inter": ["@expo-google-fonts/inter@0.4.2", "", {}, "sha512-syfiImMaDmq7cFi0of+waE2M4uSCyd16zgyWxdPOY7fN2VBmSLKEzkfbZgeOjJq61kSqPBNNtXjggiQiSD6gMQ=="],
 
     "@expo-google-fonts/playfair-display": ["@expo-google-fonts/playfair-display@0.4.2", "", {}, "sha512-mWhBV59RUjSS3aYpytUb7UyHHTnXcHh7epAn7gq+M4XAEh5PuMKUrP8eiUfkJLb6UwHZCi7EhQpUzxHu5OL96w=="],
 
