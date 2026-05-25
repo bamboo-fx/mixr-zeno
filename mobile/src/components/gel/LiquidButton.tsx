@@ -181,19 +181,19 @@ function getVariantColors(variant: LiquidButtonVariant, disabled: boolean) {
       return {
         bgGradient: ['rgba(168, 85, 247, 0.35)', 'rgba(139, 92, 246, 0.25)', 'rgba(124, 58, 237, 0.30)'],
         textColor: '#FFFFFF',
-        shadowColor: '#A855F7',
+        shadowColor: '#3AE3A0',
       };
     case 'secondary':
       return {
         bgGradient: ['rgba(139, 92, 246, 0.18)', 'rgba(109, 40, 217, 0.12)'],
         textColor: '#E9D5FF',
-        shadowColor: '#7C3AED',
+        shadowColor: '#28C988',
       };
     case 'ghost':
       return {
         bgGradient: ['rgba(255, 255, 255, 0.06)', 'rgba(255, 255, 255, 0.02)'],
-        textColor: '#C084FC',
-        shadowColor: '#6D28D9',
+        textColor: '#7AECC4',
+        shadowColor: '#1E3FB8',
       };
     case 'destructive':
       return {

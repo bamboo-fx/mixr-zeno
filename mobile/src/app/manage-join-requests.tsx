@@ -237,7 +237,7 @@ function RequestCard({ request, onApprove, onDecline, isApproving, isDeclining }
               <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
             ) : (
               <LinearGradient
-                colors={['#A855F7', '#8B5CF6']}
+                colors={['#3AE3A0', '#4F7CFF']}
                 style={styles.avatarFallback}
               >
                 <Text style={styles.avatarText}>{getInitials(user?.name)}</Text>

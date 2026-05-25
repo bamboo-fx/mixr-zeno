@@ -28,13 +28,13 @@ import { Haptics } from '@/lib/haptics';
 
 const CATEGORY_OPTIONS: { key: GroupCategory; label: string; color: string }[] = [
   { key: 'sports', label: 'Sports', color: '#FF6B6B' },
-  { key: 'social', label: 'Social', color: '#A78BFA' },
+  { key: 'social', label: 'Social', color: '#4F7CFF' },
   { key: 'clubs', label: 'Clubs', color: '#4ECDC4' },
   { key: 'other', label: 'Other', color: '#94A3B8' },
 ];
 
 const CARD_COLORS = [
-  { label: 'Purple',    hex: '#A855F7' },
+  { label: 'Purple',    hex: '#FFFFFF' },
   { label: 'Pink',      hex: '#EC4899' },
   { label: 'Blue',      hex: '#3B82F6' },
   { label: 'Sky',       hex: '#38BDF8' },
@@ -403,11 +403,11 @@ export default function CreateGroupScreen() {
                   <View
                     style={[
                       styles.privacyIconContainer,
-                      { backgroundColor: isPrivate ? DS.Color.gelPurple + '20' : DS.Color.glass },
+                      { backgroundColor: isPrivate ? '#FFFFFF' + '20' : DS.Color.glass },
                     ]}
                   >
                     {isPrivate ? (
-                      <Lock size={20} color={DS.Color.gelPurple} />
+                      <Lock size={20} color={'#FFFFFF'} />
                     ) : (
                       <Globe size={20} color={DS.Color.text2} />
                     )}
@@ -428,8 +428,8 @@ export default function CreateGroupScreen() {
                       Haptics.tap();
                       setIsPrivate(val);
                     }}
-                    trackColor={{ false: DS.Color.glass, true: DS.Color.gelPurple + '60' }}
-                    thumbColor={isPrivate ? DS.Color.gelPurple : DS.Color.text3}
+                    trackColor={{ false: DS.Color.glass, true: '#FFFFFF' + '60' }}
+                    thumbColor={isPrivate ? '#FFFFFF' : DS.Color.text3}
                   />
                 </Pressable>
               </GelCard>
@@ -587,7 +587,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   inputActive: {
-    backgroundColor: DS.Color.gelPurple + '08',
+    backgroundColor: '#FFFFFF' + '08',
   },
   textArea: {
     minHeight: 100,
@@ -668,7 +668,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: DS.Color.gelPurple + '15',
+    backgroundColor: '#FFFFFF' + '15',
     alignItems: 'center',
     justifyContent: 'center',
   },

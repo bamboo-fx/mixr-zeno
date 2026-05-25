@@ -44,8 +44,8 @@ export const DS = {
     purple: '#7C3AED',
     purpleLight: '#A855F7',
     purpleBright: '#9333EA',
-    violet: '#8B5CF6',
-    fuchsia: '#D946EF',
+    violet: '#4F7CFF',
+    fuchsia: '#FF4D5E',
     pinkSparkle: '#FF7BD1',
 
     // Surfaces — flat dark, NOT glass
@@ -80,10 +80,10 @@ export const DS = {
     divider: 'rgba(255, 255, 255, 0.06)',
     dividerLight: 'rgba(255, 255, 255, 0.08)',
 
-    // Accent — purple sparingly
-    gelPurple: '#A855F7',
-    deepPurple: '#7C3AED',
-    lavender: '#D8B4FE',
+    // Accent — mint (was purple, retained property name for compatibility)
+    gelPurple: '#3AE3A0',
+    deepPurple: '#28C988',
+    lavender: '#7AECC4',
   },
 
   // Gradients — minimal, purposeful
@@ -125,7 +125,7 @@ export const DS = {
 
     // Purple to pink — for hero/special moments
     purplePink: {
-      colors: ['#7C3AED', '#A855F7', '#D946EF'] as const,
+      colors: ['#7C3AED', '#A855F7', '#FF4D5E'] as const,
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },

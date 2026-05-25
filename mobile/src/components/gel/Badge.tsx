@@ -39,11 +39,11 @@ const getVariantStyle = (variant: BadgeVariant): VariantStyle => {
   switch (variant) {
     case 'selected':
       return {
-        backgroundColor: '#A855F7',
-        borderColor: '#C084FC',
+        backgroundColor: '#3AE3A0',
+        borderColor: '#7AECC4',
         textColor: '#FFFFFF',
         shadow: {
-          shadowColor: '#A855F7',
+          shadowColor: '#3AE3A0',
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.3,
           shadowRadius: 8,
@@ -54,7 +54,7 @@ const getVariantStyle = (variant: BadgeVariant): VariantStyle => {
       return {
         backgroundColor: 'transparent',
         borderColor: 'rgba(168,85,247,0.4)',
-        textColor: '#D8B4FE',
+        textColor: '#FFE5BC',
         shadow: {},
       };
     case 'muted':

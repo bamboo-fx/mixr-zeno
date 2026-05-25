@@ -8,7 +8,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { DS } from '@/lib/ds';
+import { colors as C } from '@/lib/theme';
 
 interface SkeletonProps {
   height?: number;
@@ -104,7 +104,7 @@ export function SkeletonCard() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: C.surface2,
     overflow: 'hidden',
   },
   shimmer: {
@@ -117,16 +117,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   card: {
-    backgroundColor: DS.Color.panel,
-    borderRadius: DS.Radius.lg,
-    borderWidth: DS.Stroke.hairline,
-    borderColor: DS.Color.stroke,
-    padding: DS.Spacing.lg,
+    backgroundColor: C.surface,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: C.hairline,
+    padding: 16,
     gap: 12,
   },
   cardRow: {
     flexDirection: 'row',
-    gap: DS.Spacing.md,
+    gap: 14,
   },
   cardContent: {
     flex: 1,

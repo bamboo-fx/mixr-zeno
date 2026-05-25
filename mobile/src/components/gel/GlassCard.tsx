@@ -104,10 +104,10 @@ const styles = StyleSheet.create({
   },
   cardSelected: {
     backgroundColor: 'rgba(168,85,247,0.2)',
-    borderColor: '#A855F7',
+    borderColor: '#3AE3A0',
   },
   cardSelectedShadow: {
-    shadowColor: '#A855F7',
+    shadowColor: '#3AE3A0',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#A855F7',
+    backgroundColor: '#3AE3A0',
     alignItems: 'center',
     justifyContent: 'center',
   },

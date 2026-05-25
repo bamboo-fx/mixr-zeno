@@ -1,13 +1,11 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle } from 'react-native-svg';
 import { LucideIcon } from 'lucide-react-native';
-import { DS } from '@/lib/ds';
 import { Haptics } from '@/lib/haptics';
+import { colors as C, fonts as F } from '@/lib/theme';
 
-// Venn diagram icon for reuse
-export function VennDiagramIcon({ size = 36, color = DS.Color.text3 }: { size?: number; color?: string }) {
+export function VennDiagramIcon({ size = 36, color = C.ink3 }: { size?: number; color?: string }) {
   const r = size * 0.38;
   const cy = size / 2;
   const cx1 = size / 2 - r * 0.32;
@@ -37,38 +35,26 @@ export function EmptyState({
   subtitle,
   actionLabel,
   onAction,
-  iconColor = DS.Color.text3,
+  iconColor = C.ink3,
 }: EmptyStateProps) {
   return (
     <View style={styles.container}>
-      {/* Icon Circle */}
       <View style={styles.iconContainer}>
-        <View style={styles.iconInner}>
-          {customIcon ?? (Icon ? <Icon size={36} color={iconColor} strokeWidth={1.5} /> : null)}
-        </View>
+        {customIcon ?? (Icon ? <Icon size={32} color={iconColor} strokeWidth={1.5} /> : null)}
       </View>
 
-      {/* Text */}
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.subtitle}>{subtitle}</Text>
 
-      {/* Action Button */}
       {actionLabel && onAction && (
         <Pressable
           onPress={() => {
             Haptics.medium();
             onAction();
           }}
-          style={styles.button}
+          style={({ pressed }) => [styles.button, pressed && { opacity: 0.85 }]}
         >
-          <LinearGradient
-            colors={DS.Grad.accent.colors}
-            start={DS.Grad.accent.start}
-            end={DS.Grad.accent.end}
-            style={styles.buttonGradient}
-          >
-            <Text style={styles.buttonText}>{actionLabel}</Text>
-          </LinearGradient>
+          <Text style={styles.buttonText}>{actionLabel}</Text>
         </Pressable>
       )}
     </View>
@@ -79,55 +65,45 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     paddingTop: 60,
-    paddingHorizontal: DS.Spacing.xl,
+    paddingHorizontal: 32,
   },
   iconContainer: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: 'rgba(139, 92, 246, 0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: DS.Spacing.lg,
-    borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.3)',
-  },
-  iconInner: {
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: 'rgba(109, 40, 217, 0.15)',
+    backgroundColor: C.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: C.hairline,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 20,
   },
   title: {
-    color: '#FFFFFF',
+    color: C.ink,
+    fontFamily: F.bold,
     fontSize: 20,
-    fontWeight: '700',
+    letterSpacing: -0.4,
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
-    color: 'rgba(196, 181, 253, 0.7)',
-    fontSize: 15,
+    color: C.ink2,
+    fontFamily: F.regular,
+    fontSize: 14,
     textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: DS.Spacing.xl,
+    lineHeight: 21,
+    marginBottom: 28,
   },
   button: {
-    borderRadius: DS.Radius.xl,
-    overflow: 'hidden',
-  },
-  buttonGradient: {
-    paddingHorizontal: DS.Spacing.xl,
-    paddingVertical: DS.Spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    borderRadius: 14,
+    backgroundColor: C.ink,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
   },
   buttonText: {
-    color: DS.Color.bg,
-    fontWeight: '800',
+    color: C.bg,
+    fontFamily: F.semibold,
     fontSize: 15,
+    letterSpacing: -0.1,
   },
 });

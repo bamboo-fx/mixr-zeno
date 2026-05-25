@@ -113,7 +113,7 @@ function getVariantConfig(variant: GelPillProps['variant']): {
         borderColor: 'rgba(168,85,247,0.50)',
         textColor: '#E9D5FF',
         shadowStyle: {
-          shadowColor: '#A855F7',
+          shadowColor: '#3AE3A0',
           shadowOffset: { width: 0, height: 3 },
           shadowOpacity: 0.35,
           shadowRadius: 8,

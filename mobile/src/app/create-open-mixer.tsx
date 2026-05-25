@@ -462,7 +462,7 @@ export default function CreateOpenMixerScreen() {
             style={{ borderRadius: DS.Radius.md, overflow: 'hidden' }}
           >
             <LinearGradient
-              colors={isValid ? ['#A855F7', '#7C3AED'] : ['rgba(55,65,81,0.6)', 'rgba(55,65,81,0.6)']}
+              colors={isValid ? ['#3AE3A0', '#28C988'] : ['rgba(55,65,81,0.6)', 'rgba(55,65,81,0.6)']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={{
@@ -569,7 +569,7 @@ export default function CreateOpenMixerScreen() {
                       borderRadius: 12,
                       overflow: 'hidden',
                       borderWidth: customImageUrl ? 2.5 : 1,
-                      borderColor: customImageUrl ? '#A855F7' : 'rgba(255,255,255,0.18)',
+                      borderColor: customImageUrl ? '#3AE3A0' : 'rgba(255,255,255,0.18)',
                       backgroundColor: 'rgba(168,85,247,0.10)',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -583,7 +583,7 @@ export default function CreateOpenMixerScreen() {
                           <Check size={16} color="#fff" strokeWidth={3} />
                           <Text style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>My Photo</Text>
                         </View>
-                        <View style={{ position: 'absolute', top: 6, right: 6, width: 20, height: 20, borderRadius: 10, backgroundColor: '#A855F7', alignItems: 'center', justifyContent: 'center' }}>
+                        <View style={{ position: 'absolute', top: 6, right: 6, width: 20, height: 20, borderRadius: 10, backgroundColor: '#3AE3A0', alignItems: 'center', justifyContent: 'center' }}>
                           <Check size={12} color="#FFFFFF" strokeWidth={3} />
                         </View>
                       </>
@@ -611,7 +611,7 @@ export default function CreateOpenMixerScreen() {
                           borderRadius: 12,
                           overflow: 'hidden',
                           borderWidth: isSelected ? 2.5 : 1,
-                          borderColor: isSelected ? '#A855F7' : 'rgba(255,255,255,0.12)',
+                          borderColor: isSelected ? '#3AE3A0' : 'rgba(255,255,255,0.12)',
                         }}
                       >
                         <Image
@@ -635,7 +635,7 @@ export default function CreateOpenMixerScreen() {
                           <View style={{
                             position: 'absolute', top: 6, right: 6,
                             width: 20, height: 20, borderRadius: 10,
-                            backgroundColor: '#A855F7',
+                            backgroundColor: '#3AE3A0',
                             alignItems: 'center', justifyContent: 'center',
                           }}>
                             <Check size={12} color="#FFFFFF" strokeWidth={3} />

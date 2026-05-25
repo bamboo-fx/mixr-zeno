@@ -111,6 +111,7 @@ config.resolver = {
         "react-native-pager-view",
         "reanimated-tab-view",
         "@bottom-tabs/react-navigation",
+        "react-native-maps",
       ];
 
       if (nativeOnlyModules.some((mod) => moduleName.includes(mod))) {

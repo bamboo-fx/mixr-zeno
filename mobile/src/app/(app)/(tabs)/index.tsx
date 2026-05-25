@@ -47,6 +47,10 @@ import Svg, { Path, Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import type { Group, Activity, GroupCategory, ActivityCategory, GlobalStoryFeedItem, OpenMixer } from '@/lib/types';
+import { colors as C, fonts as F } from '@/lib/theme';
+import { HeaderBackdrop } from '@/components/HeaderBackdrop';
+import { MixerModeBanner } from '@/components/mixer/MixerModeBanner';
+import { format as fmtDate } from 'date-fns';
 import { ACTIVITIES } from '@/lib/activities';
 
 import { DS } from '@/lib/ds';
@@ -137,15 +141,15 @@ function AnimatedFlame({ size = 18, color = '#FF6B35' }: { size?: number; color?
 const CATEGORY_COLORS: Record<GroupCategory, string[]> = {
   sports: ['#FF6B6B', '#FF8E53'],
   social: ['#00D4AA', '#0096FF'],
-  clubs:  ['#A78BFA', '#7C3AED'],
+  clubs:  ['#4F7CFF', '#28C988'],
   other:  ['#9CA3AF', '#6B7280'],
 };
 
 const ACTIVITY_COLORS: Record<ActivityCategory, string[]> = {
   drinking_game: ['#FF6B6B', '#FF8E53'],
   icebreaker: ['#00D4AA', '#0096FF'],
-  competition: ['#A78BFA', '#7C3AED'],
-  themed: ['#EC4899', '#A855F7'],
+  competition: ['#4F7CFF', '#28C988'],
+  themed: ['#EC4899', '#3AE3A0'],
   lowkey: ['#6EE7B7', '#059669'],
 };
 
@@ -247,29 +251,35 @@ function StoriesRow({
                 style={styles.addMoreBadge}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Plus size={14} color="#FFFFFF" strokeWidth={3} />
+                <Plus size={14} color={C.bg} strokeWidth={3} />
               </Pressable>
             </View>
           ) : (
-            // No story - show Add button
+            // No story - show Add button (replaces old purple gradient asset)
             <Pressable
               onPress={() => {
                 Haptics.tap();
                 onCameraPress();
               }}
-              style={{ marginTop: 10 }}
+              style={{
+                marginTop: 10,
+                width: 64,
+                height: 64,
+                borderRadius: 32,
+                backgroundColor: C.surface,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: StyleSheet.hairlineWidth,
+                borderColor: C.hairline,
+              }}
             >
-              <Image
-                source={ADD_STORY_BUTTON}
-                style={{ width: 80, height: 80 }}
-                resizeMode="contain"
-              />
+              <Plus size={22} color={C.ink} strokeWidth={2.2} />
             </Pressable>
           )}
           {myStory ? (
             <Text style={styles.storyLabel} numberOfLines={1}>Your Story</Text>
           ) : (
-            <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '700', marginTop: 2 }}>Add Story</Text>
+            <Text style={{ color: C.ink, fontSize: 11, fontFamily: F.semibold, marginTop: 4 }}>Add Story</Text>
           )}
           {myStory && myStory.stories.length > 1 && (
             <View style={styles.storyCountBadge}>
@@ -317,7 +327,7 @@ function StoriesRow({
 }
 
 function DiscoverGroupCard({ group, rank, onPress }: { group: Group; rank?: number; onPress: () => void }) {
-  const colors = CATEGORY_COLORS[group.category] ?? ['#A78BFA', '#7C3AED'];
+  const colors = CATEGORY_COLORS[group.category] ?? ['#4F7CFF', '#28C988'];
 
   return (
     <Pressable onPress={onPress} style={styles.groupCard}>
@@ -602,6 +612,12 @@ export default function DiscoverScreen() {
     placeholderData: ACTIVITIES,
   });
 
+  const { data: trendingActivities = [] } = useQuery({
+    queryKey: ['activities-trending'],
+    queryFn: () => api.activities.trending(),
+    staleTime: 60 * 60_000,
+  });
+
   const { data: topMixerData, isLoading: topMixerLoading } = useQuery({
     queryKey: ['top-mixer', profile?.collegeId],
     queryFn: () => api.rankings.getTop(profile!.collegeId!),
@@ -672,6 +688,20 @@ export default function DiscoverScreen() {
     setRefreshing(false);
   }, [queryClient]);
 
+  // Nearest upcoming mixer for the hero block on Discover
+  const nextMixerSummary = React.useMemo(() => {
+    const now = Date.now();
+    return (myMixers as Array<{ id: string; status: string; scheduledStart: string }>)
+      .filter((m) => (m.status === 'upcoming' || m.status === 'locked' || m.status === 'live') && new Date(m.scheduledStart).getTime() > now - 1000 * 60 * 60 * 4)
+      .sort((a, b) => new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime())[0];
+  }, [myMixers]);
+
+  const { data: nextMixerFull } = useQuery({
+    queryKey: ['mixer', nextMixerSummary?.id, profile?.id],
+    queryFn: () => api.mixers.get(nextMixerSummary!.id, profile?.id),
+    enabled: !!nextMixerSummary?.id,
+  });
+
   const displayGroups = topGroups ?? [];
   const spotlightActivity: Activity | undefined = (activities ?? ACTIVITIES)[0];
   const activeGroups = displayGroups.filter((g) => (g._count?.members ?? 0) > 0).length;
@@ -711,30 +741,71 @@ export default function DiscoverScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#211621' }}>
-    <GelBackground>
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <HeaderBackdrop height={280} />
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: 120 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#A855F7" progressViewOffset={38} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.ink} progressViewOffset={38} />
         }
       >
         {/* Logo Header */}
-        <View style={{ paddingTop: insets.top + 6, paddingHorizontal: DS.Spacing.lg, paddingBottom: 4 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View style={{ width: 44 }} />
-            <View style={{ flex: 1, alignItems: 'center' }}>
-              <Image
-                source={MIXR_LOGO}
-                style={{ width: 160, height: 40 }}
-                resizeMode="contain"
-              />
-            </View>
+        <View style={{ paddingTop: insets.top + 12, paddingHorizontal: DS.Spacing.lg, paddingBottom: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={{ color: C.ink, fontSize: 40, fontFamily: F.bold, letterSpacing: -1.8 }}>
+              mixr<Text style={{ color: C.amber }}>.</Text>
+            </Text>
             <MessagesButton onPress={() => router.push('/notifications')} />
           </View>
         </View>
+
+        {/* Pinned banner when the user is in an active mixer window */}
+        <MixerModeBanner />
+
+        {/* ─── Your next mixer — compact preview card ─── */}
+        {nextMixerFull && (
+          <View style={{ paddingHorizontal: DS.Spacing.lg, marginTop: 14, marginBottom: 10 }}>
+            <Text style={{ color: C.ink3, fontFamily: F.semibold, fontSize: 11, letterSpacing: 1.4, textTransform: 'uppercase', marginBottom: 10, paddingHorizontal: 2 }}>
+              Your next mixer
+            </Text>
+            <Pressable
+              onPress={() => router.push(`/mixer/${nextMixerFull.id}`)}
+              style={({ pressed }) => ({
+                backgroundColor: C.surface,
+                borderRadius: 16,
+                borderWidth: StyleSheet.hairlineWidth,
+                borderColor: C.hairline,
+                padding: 16,
+                opacity: pressed ? 0.92 : 1,
+              })}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                {nextMixerFull.participants?.some((p) => p.userId === profile?.id && p.rsvpStatus === 'going') && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, backgroundColor: 'rgba(58,227,160,0.12)', borderWidth: 1, borderColor: 'rgba(58,227,160,0.30)' }}>
+                    <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: C.mint }} />
+                    <Text style={{ color: C.mint, fontFamily: F.semibold, fontSize: 10, letterSpacing: 0.2 }}>YOU'RE GOING</Text>
+                  </View>
+                )}
+                <Text style={{ color: C.ink3, fontFamily: F.medium, fontSize: 11, letterSpacing: 0.3 }}>
+                  {fmtDate(new Date(nextMixerFull.scheduledStart), 'EEE M/d · h:mm a')}
+                </Text>
+              </View>
+              <Text style={{ color: C.ink, fontFamily: F.bold, fontSize: 22, letterSpacing: -0.6, marginBottom: 4 }}>
+                {fmtDate(new Date(nextMixerFull.scheduledStart), 'EEEE')} <Text style={{ color: C.amber }}>at {nextMixerFull.location || 'TBD'}.</Text>
+              </Text>
+              <Text style={{ fontSize: 13, fontFamily: F.semibold, letterSpacing: -0.1 }}>
+                <Text style={{ color: C.navy }}>{nextMixerFull.groupA?.name ?? 'Group A'}</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.5)', fontFamily: F.regular }}>  ×  </Text>
+                <Text style={{ color: C.crimson }}>{nextMixerFull.groupB?.name ?? 'Group B'}</Text>
+              </Text>
+              <Text style={{ color: C.ink3, fontFamily: F.medium, fontSize: 11, marginTop: 10 }}>
+                Tap to vote on theme & activity →
+              </Text>
+            </Pressable>
+          </View>
+        )}
 
         {/* Stories Row */}
         <StoriesRow
@@ -746,6 +817,43 @@ export default function DiscoverScreen() {
           seenUserIds={seenUserIds}
         />
 
+        {/* Weekly Activity Suggestions */}
+        {trendingActivities.length > 0 && (
+          <View style={[styles.section, { marginBottom: 14 }]}>
+            <Text style={{ color: C.ink3, fontFamily: F.semibold, fontSize: 11, letterSpacing: 1.4, textTransform: 'uppercase', marginBottom: 10, paddingHorizontal: 2 }}>
+              This week's vibes
+            </Text>
+            <View style={{ backgroundColor: C.surface, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: C.hairline, overflow: 'hidden' }}>
+              {trendingActivities.slice(0, 3).map((a, idx) => (
+                <View
+                  key={a.id}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 14,
+                    paddingHorizontal: 16,
+                    paddingVertical: 14,
+                    borderTopWidth: idx > 0 ? StyleSheet.hairlineWidth : 0,
+                    borderTopColor: C.hairline,
+                  }}
+                >
+                  <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: C.surface2, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ color: C.ink, fontFamily: F.bold, fontSize: 14, letterSpacing: -0.2 }}>{idx + 1}</Text>
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text numberOfLines={1} style={{ color: C.ink, fontFamily: F.semibold, fontSize: 15, letterSpacing: -0.2 }}>
+                      {a.name}
+                    </Text>
+                    <Text numberOfLines={1} style={{ color: C.ink3, fontFamily: F.medium, fontSize: 12, marginTop: 2 }}>
+                      {a.category.replace(/_/g, ' ')}  ·  {a.durationMinutes} min
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
         {/* Open Mixers Section — individual cards */}
         <View style={styles.section}>
           {/* Section header */}
@@ -755,18 +863,7 @@ export default function DiscoverScreen() {
             justifyContent: 'space-between',
             marginBottom: 14,
           }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Image source={OPEN_MIXERS_GLOBE} style={{ width: 28, height: 28 }} resizeMode="contain" />
-              <Text style={{ color: '#FFFFFF', fontSize: 24, fontWeight: '800' }}>Open Mixers</Text>
-            </View>
-            <Pressable
-              onPress={() => {
-                Haptics.tap();
-                router.push('/create-open-mixer');
-              }}
-            >
-              <Image source={OPEN_MIXERS_POST_BTN} style={{ width: 90, height: 40 }} resizeMode="contain" />
-            </Pressable>
+            <Text style={{ color: C.ink, fontSize: 24, fontFamily: F.bold, letterSpacing: -0.6 }}>Open Mixers</Text>
           </View>
 
           {/* Filter tabs */}
@@ -783,13 +880,13 @@ export default function DiscoverScreen() {
                     paddingVertical: 4,
                     marginRight: 4,
                     borderBottomWidth: isActive ? 1.5 : 0,
-                    borderBottomColor: 'rgba(255,255,255,0.7)',
+                    borderBottomColor: C.ink,
                   }}
                 >
                   <Text style={{
-                    color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.35)',
+                    color: isActive ? C.ink : C.ink3,
                     fontSize: 12,
-                    fontWeight: isActive ? '600' : '400',
+                    fontFamily: isActive ? F.semibold : F.medium,
                     letterSpacing: 0.1,
                   }}>
                     {label}
@@ -821,29 +918,27 @@ export default function DiscoverScreen() {
                 <View style={{
                   paddingVertical: 32,
                   alignItems: 'center',
-                  gap: 8,
-                  backgroundColor: 'rgba(255,255,255,0.04)',
+                  gap: 10,
+                  backgroundColor: C.surface,
                   borderRadius: 16,
-                  borderWidth: 0.5,
-                  borderColor: 'rgba(255,255,255,0.08)',
+                  borderWidth: StyleSheet.hairlineWidth,
+                  borderColor: C.hairline,
                 }}>
-                  <Globe size={24} color="rgba(255,255,255,0.18)" strokeWidth={1.5} />
-                  <Text style={{ color: 'rgba(255,255,255,0.30)', fontSize: 14, fontWeight: '500' }}>
+                  <Globe size={24} color={C.ink3} strokeWidth={1.5} />
+                  <Text style={{ color: C.ink2, fontSize: 14, fontFamily: F.medium }}>
                     No mixers for this period
                   </Text>
                   <Pressable
                     onPress={() => { Haptics.tap(); router.push('/create-open-mixer'); }}
                     style={{
                       marginTop: 4,
-                      paddingHorizontal: 16,
-                      paddingVertical: 8,
-                      borderRadius: 100,
-                      backgroundColor: 'rgba(168,85,247,0.18)',
-                      borderWidth: 0.5,
-                      borderColor: 'rgba(168,85,247,0.40)',
+                      paddingHorizontal: 18,
+                      paddingVertical: 10,
+                      borderRadius: 999,
+                      backgroundColor: C.ink,
                     }}
                   >
-                    <Text style={{ color: DS.Color.gelPurple, fontSize: 13, fontWeight: '700' }}>Post a Mixer</Text>
+                    <Text style={{ color: C.bg, fontSize: 13, fontFamily: F.semibold, letterSpacing: -0.1 }}>Post a Mixer</Text>
                   </Pressable>
                 </View>
               );
@@ -851,219 +946,95 @@ export default function DiscoverScreen() {
 
             return (
               <View style={{ gap: 12 }}>
-                {filteredMixers.map((mixer) => {
-                  const count = mixer._count?.participants ?? 0;
-                  const fillPct = Math.min(count / mixer.maxCapacity, 1);
-                  const isFull = count >= mixer.maxCapacity;
-                  const isJoined = mixer.isParticipant || mixer.hostId === profile?.id;
-                  const isLive = mixer.status === 'live';
-                  const bgEntry = BACKGROUND_IMAGES.find((b) => b.key === mixer.backgroundImage) ?? BACKGROUND_IMAGES[0]!;
-                  const scheduledDate = new Date(mixer.scheduledStart);
-                  const dateTimeStr = scheduledDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-                    + ' • ' + scheduledDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                {/* Mockup-style clean rows */}
+                <View style={{ backgroundColor: C.surface, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: C.hairline, overflow: 'hidden' }}>
+                  {filteredMixers.map((mixer, idx) => {
+                    const count = mixer._count?.participants ?? 0;
+                    const isFull = count >= mixer.maxCapacity;
+                    const isJoined = mixer.isParticipant || mixer.hostId === profile?.id;
+                    const isLive = mixer.status === 'live';
+                    const accent = mixer.color || C.amber;
+                    const scheduledDate = new Date(mixer.scheduledStart);
+                    const dateStr = scheduledDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                    const timeStr = scheduledDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                    const initial = (mixer.title || '?').trim().charAt(0).toUpperCase();
+                    return (
+                      <Pressable
+                        key={mixer.id}
+                        onPress={() => { Haptics.tap(); router.push(`/open-mixer/${mixer.id}`); }}
+                        style={({ pressed }) => ({
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 14,
+                          paddingHorizontal: 16,
+                          paddingVertical: 16,
+                          borderTopWidth: idx > 0 ? StyleSheet.hairlineWidth : 0,
+                          borderTopColor: C.hairline,
+                          backgroundColor: pressed ? C.surface3 : 'transparent',
+                        })}
+                      >
+                        {/* Crest */}
+                        <LinearGradient
+                          colors={[accent, accent + '99']}
+                          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                          style={{
+                            width: 52, height: 52, borderRadius: 13,
+                            alignItems: 'center', justifyContent: 'center',
+                            shadowColor: accent, shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
+                          }}
+                        >
+                          <Text style={{ color: C.ink, fontFamily: F.bold, fontSize: 22, letterSpacing: -0.5 }}>{initial}</Text>
+                        </LinearGradient>
 
-                  return (
-                    <View
-                      key={mixer.id}
-                      style={{
-                        borderRadius: 20,
-                        borderWidth: 2,
-                        borderColor: 'rgba(168,85,247,0.35)',
-                        overflow: 'hidden',
-                        backgroundColor: 'transparent',
-                      }}
-                    >
-                    <Pressable
-                      onPress={() => { Haptics.tap(); router.push(`/open-mixer/${mixer.id}`); }}
-                      style={{ borderRadius: 18, overflow: 'hidden', height: 180 }}
-                    >
-                      {/* Background image */}
-                      <Image
-                        source={bgEntry.source}
-                        style={{ position: 'absolute', width: '100%', height: '100%' }}
-                        resizeMode="cover"
-                      />
-                      {/* Dark scrim — top and bottom for text legibility */}
-                      <LinearGradient
-                        colors={['rgba(0,0,0,0.55)', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0.65)']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 0, y: 1 }}
-                        style={{ position: 'absolute', inset: 0 }}
-                      />
-
-                      {/* LIVE badge */}
-                      {isLive && (
-                        <View style={{
-                          position: 'absolute', top: 12, right: 12,
-                          flexDirection: 'row', alignItems: 'center', gap: 4,
-                          paddingHorizontal: 10, paddingVertical: 4,
-                          borderRadius: 100,
-                          backgroundColor: 'rgba(168,85,247,0.80)',
-                          borderWidth: 1, borderColor: 'rgba(168,85,247,0.9)',
-                        }}>
-                          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#FFFFFF' }} />
-                          <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '800', letterSpacing: 1 }}>LIVE</Text>
-                        </View>
-                      )}
-
-                      {/* Top-left title + metrics */}
-                      <View style={{
-                        position: 'absolute', top: 0, left: 0, right: 0,
-                        paddingTop: 14, paddingBottom: 14, paddingLeft: 20, paddingRight: 14, gap: 6,
-                      }}>
-                        {/* Title */}
-                        <Text style={{
-                          color: '#FFFFFF',
-                          fontSize: 26,
-                          fontWeight: '900',
-                          letterSpacing: 0.4,
-                          textShadowColor: 'rgba(0,0,0,0.7)',
-                          textShadowOffset: { width: 0, height: 1 },
-                          textShadowRadius: 5,
-                        }} numberOfLines={2}>
-                          {mixer.title.toUpperCase()}
-                        </Text>
-
-                        {/* Metrics row: location • date • time */}
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                          <MapPin size={12} color="rgba(255,255,255,0.85)" />
-                          <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: '600' }} numberOfLines={1}>
-                            {mixer.location}
-                          </Text>
-                          <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13 }}> • </Text>
-                          <Calendar size={12} color="rgba(255,255,255,0.85)" />
-                          <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: '600' }}>
-                            {dateTimeStr}
-                          </Text>
-                        </View>
-                      </View>
-
-                      {/* Bottom content */}
-                      <View style={{
-                        position: 'absolute', bottom: 0, left: 0, right: 0,
-                        padding: 14, gap: 8,
-                      }}>
-
-                        {/* Progress bar + Join button */}
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                          {/* Glassmorphic progress bar */}
-                          <View style={{ flex: 1, gap: 5 }}>
-                            {/* Outer track */}
-                            <View style={{
-                              height: 22,
-                              borderRadius: 11,
-                              backgroundColor: 'rgba(255,255,255,0.08)',
-                              borderWidth: 1.5,
-                              borderColor: 'rgba(255,255,255,0.18)',
-                              padding: 3,
-                              justifyContent: 'center',
-                            }}>
-                              {/* Inner track groove */}
-                              <View style={{
-                                flex: 1,
-                                borderRadius: 8,
-                                backgroundColor: 'rgba(0,0,0,0.25)',
-                                overflow: 'visible',
-                              }}>
-                                {/* Gradient fill pill */}
-                                {fillPct > 0 && (
-                                  <View style={{
-                                    position: 'absolute',
-                                    top: 0, bottom: 0, left: 0,
-                                    width: `${Math.round(fillPct * 100)}%` as any,
-                                    borderRadius: 8,
-                                    overflow: 'hidden',
-                                  }}>
-                                    <LinearGradient
-                                      colors={isFull ? ['#F59E0B', '#F59E0B'] : ['#5BC4EF', '#9B70D6', '#C472C8']}
-                                      start={{ x: 0, y: 0 }}
-                                      end={{ x: 1, y: 0 }}
-                                      style={{ flex: 1 }}
-                                    />
-                                    {/* Top gloss highlight */}
-                                    <LinearGradient
-                                      colors={['rgba(255,255,255,0.45)', 'rgba(255,255,255,0.0)']}
-                                      start={{ x: 0, y: 0 }}
-                                      end={{ x: 0, y: 1 }}
-                                      style={{
-                                        position: 'absolute',
-                                        top: 0, left: 0, right: 0,
-                                        height: '50%',
-                                        borderTopLeftRadius: 8,
-                                        borderTopRightRadius: 8,
-                                      }}
-                                    />
-                                  </View>
-                                )}
-                                {/* Thumb ball at the end of fill */}
-                                {fillPct > 0 && fillPct < 1 && (
-                                  <View style={{
-                                    position: 'absolute',
-                                    top: '50%',
-                                    left: `${Math.round(fillPct * 100)}%` as any,
-                                    width: 14,
-                                    height: 14,
-                                    borderRadius: 7,
-                                    marginTop: -7,
-                                    marginLeft: -7,
-                                    backgroundColor: 'rgba(200,190,220,0.85)',
-                                    borderWidth: 1,
-                                    borderColor: 'rgba(255,255,255,0.6)',
-                                    shadowColor: '#000',
-                                    shadowOffset: { width: 0, height: 1 },
-                                    shadowOpacity: 0.4,
-                                    shadowRadius: 3,
-                                  }} />
-                                )}
-                              </View>
-                            </View>
-                            <Text style={{ color: 'rgba(255,255,255,0.60)', fontSize: 11, fontWeight: '600' }}>
-                              {count}/{mixer.maxCapacity} {isFull ? '· Full' : 'joined'}
+                        {/* Middle */}
+                        <View style={{ flex: 1, minWidth: 0 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                            <Text numberOfLines={1} style={{ color: C.ink, fontFamily: F.semibold, fontSize: 15, letterSpacing: -0.2, flexShrink: 1 }}>
+                              {mixer.title}
                             </Text>
+                            {isLive && (
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, backgroundColor: 'rgba(58,227,160,0.14)' }}>
+                                <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: C.mint }} />
+                                <Text style={{ color: C.mint, fontFamily: F.bold, fontSize: 9, letterSpacing: 0.5 }}>LIVE</Text>
+                              </View>
+                            )}
                           </View>
-
-                          {/* Join / Joined glassmorphic button */}
-                          <Pressable
-                            onPress={(e) => { e.stopPropagation(); Haptics.tap(); router.push(`/open-mixer/${mixer.id}`); }}
-                            style={{ borderRadius: 100, overflow: 'hidden' }}
-                          >
-                            <LinearGradient
-                              colors={['#5BC4EF', '#9B70D6', '#C472C8']}
-                              start={{ x: 0, y: 0 }}
-                              end={{ x: 1, y: 0 }}
-                              style={{
-                                paddingHorizontal: 28,
-                                paddingVertical: 12,
-                                borderRadius: 100,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                borderWidth: 1,
-                                borderColor: 'rgba(255,255,255,0.15)',
-                              }}
-                            >
-                              <Text style={{
-                                color: '#FFFFFF',
-                                fontSize: 16,
-                                fontWeight: '700',
-                                letterSpacing: 0.2,
-                              }}>
-                                {isJoined ? 'Joined ✓' : 'Join'}
-                              </Text>
-                            </LinearGradient>
-                          </Pressable>
+                          <Text numberOfLines={1} style={{ color: C.ink3, fontFamily: F.medium, fontSize: 12 }}>
+                            {mixer.location} · {dateStr} · {timeStr}
+                          </Text>
+                          <Text style={{ color: C.ink3, fontFamily: F.medium, fontSize: 11, marginTop: 4 }}>
+                            <Text style={{ color: isFull ? C.amber : C.ink2, fontFamily: F.bold }}>{count}</Text>
+                            <Text>/{mixer.maxCapacity} {isFull ? 'full' : 'going'}</Text>
+                          </Text>
                         </View>
-                      </View>
-                    </Pressable>
-                    </View>
-                  );
-                })}
+
+                        {/* Right action */}
+                        <View style={{
+                          paddingHorizontal: 14,
+                          paddingVertical: 8,
+                          borderRadius: 999,
+                          backgroundColor: isJoined ? C.surface2 : C.ink,
+                        }}>
+                          <Text style={{
+                            color: isJoined ? C.ink2 : C.bg,
+                            fontFamily: F.semibold,
+                            fontSize: 13,
+                            letterSpacing: -0.1,
+                          }}>
+                            {isJoined ? 'Joined' : 'Join'}
+                          </Text>
+                        </View>
+                      </Pressable>
+                    );
+                  })}
+                </View>
               </View>
             );
           })()}
         </View>
 
-        {/* Top Mixer of the Week */}
-        {(topMixerData?.topMixer || topMixerLoading) && (
+        {/* Top Mixer of the Week — hidden for now to declutter Discover */}
+        {false && (topMixerData?.topMixer || topMixerLoading) && (
           <View style={styles.section}>
             <View style={{ gap: 2, marginBottom: DS.Spacing.md }}>
               <Text style={styles.sectionLabel2}>THIS WEEK</Text>
@@ -1103,7 +1074,6 @@ export default function DiscoverScreen() {
         }}
       />
 
-    </GelBackground>
     </View>
   );
 }
@@ -1209,8 +1179,7 @@ const styles = StyleSheet.create({
     height: 72,
     borderRadius: 36,
     borderWidth: 2,
-    borderColor: DS.Color.gelPurple,
-    borderStyle: 'dashed',
+    borderColor: C.ink,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1218,18 +1187,19 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -2,
     right: -2,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: DS.Color.gelPurple,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: C.ink,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: DS.Color.bg,
+    borderColor: C.bg,
   },
   storyLabel: {
     fontSize: 11,
-    color: DS.Color.text2,
+    fontFamily: F.semibold,
+    color: C.ink2,
     marginTop: 6,
     textAlign: 'center',
   },
@@ -1237,7 +1207,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     right: 0,
-    backgroundColor: DS.Color.gelPurple,
+    backgroundColor: C.crimson,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -1247,8 +1217,8 @@ const styles = StyleSheet.create({
   },
   storyCountText: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontFamily: F.bold,
+    color: C.ink,
   },
   header: {
     paddingHorizontal: DS.Spacing.lg,
@@ -1326,23 +1296,23 @@ const styles = StyleSheet.create({
     marginBottom: DS.Spacing.md,
   },
   sectionTitle: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 0.3,
+    color: C.ink,
+    fontSize: 22,
+    fontFamily: F.bold,
+    letterSpacing: -0.5,
   },
   sectionLabel2: {
-    color: 'rgba(255,255,255,0.40)',
+    color: C.ink3,
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: F.semibold,
     textTransform: 'uppercase',
     letterSpacing: 1.2,
   },
   sectionTitle2: {
-    color: '#FFFFFF',
+    color: C.ink,
     fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: -0.3,
+    fontFamily: F.bold,
+    letterSpacing: -0.5,
   },
   statsRow: {
     flexDirection: 'row',
@@ -1451,9 +1421,9 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   seeAllText: {
-    color: DS.Color.gelPurple,
+    color: C.ink2,
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: F.semibold,
   },
   loadingContainer: {
     height: 180,

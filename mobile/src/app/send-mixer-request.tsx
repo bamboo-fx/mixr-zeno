@@ -51,7 +51,7 @@ const CLAREMONT_COLLEGE_IDS = ['hmc01', 'pom01', 'cmc01', 'scr01', 'pit01'];
 const CATEGORY_COLORS: Record<string, [string, string]> = {
   sports:   ['#FF6B6B', '#FF8E53'],
   social:   ['#00D4AA', '#0096FF'],
-  clubs:    ['#A78BFA', '#7C3AED'],
+  clubs:    ['#4F7CFF', '#28C988'],
   other:    ['#9CA3AF', '#6B7280'],
 };
 
@@ -293,6 +293,8 @@ export default function SendMixerRequestScreen() {
   const [location, setLocation] = useState('');
   const [message, setMessage] = useState('');
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
+  const [surpriseActivity, setSurpriseActivity] = useState(false);
+  const [isOpenMixer, setIsOpenMixer] = useState(false);
 
   // My groups (from profile)
   const myGroupsList: Group[] = useMemo(() =>
@@ -381,7 +383,9 @@ export default function SendMixerRequestScreen() {
         proposedStart: proposedStart.toISOString(),
         proposedEnd: proposedEnd.toISOString(),
         proposedLocation: location.trim() || 'TBD',
-        proposedActivityId: selectedActivityId ?? undefined,
+        proposedActivityId: surpriseActivity ? undefined : (selectedActivityId ?? undefined),
+        surpriseActivity,
+        isOpenMixer,
         message: message.trim() || undefined,
         createdById: profile.id,
       });
@@ -676,7 +680,7 @@ export default function SendMixerRequestScreen() {
               <View style={styles.invitedSummary}>
                 {selectedGroups.slice(0, 3).map((group, index) => (
                   <View key={group.id} style={[styles.invitedAvatar, { marginLeft: index > 0 ? -12 : 0, zIndex: 10 - index, alignItems: 'center', justifyContent: 'center' }]}>
-                    <Text style={{ color: '#A855F7', fontWeight: '900', fontSize: 14 }}>
+                    <Text style={{ color: '#3AE3A0', fontWeight: '900', fontSize: 14 }}>
                       {group.name.charAt(0).toUpperCase()}
                     </Text>
                   </View>
@@ -746,18 +750,25 @@ export default function SendMixerRequestScreen() {
             <Text style={styles.sectionLabel}>Activity (Optional)</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.activitiesRow}>
               <Pressable
-                onPress={() => { Haptics.tap(); setSelectedActivityId(null); }}
-                style={[styles.activityChip, !selectedActivityId && styles.activityChipSelected]}
+                onPress={() => { Haptics.tap(); setSelectedActivityId(null); setSurpriseActivity(false); }}
+                style={[styles.activityChip, !selectedActivityId && !surpriseActivity && styles.activityChipSelected]}
               >
-                <Zap size={14} color={!selectedActivityId ? DS.Color.gelPurple : DS.Color.text3} />
-                <Text style={[styles.activityChipText, !selectedActivityId && styles.activityChipTextSelected]}>Random</Text>
+                <Zap size={14} color={!selectedActivityId && !surpriseActivity ? '#FFFFFF' : DS.Color.text3} />
+                <Text style={[styles.activityChipText, !selectedActivityId && !surpriseActivity && styles.activityChipTextSelected]}>Random</Text>
+              </Pressable>
+              {/* Surprise — hides the activity until reveal */}
+              <Pressable
+                onPress={() => { Haptics.tap(); setSurpriseActivity(true); setSelectedActivityId(null); }}
+                style={[styles.activityChip, surpriseActivity && styles.activityChipSelected]}
+              >
+                <Text style={[styles.activityChipText, surpriseActivity && styles.activityChipTextSelected]}>🎁 Surprise</Text>
               </Pressable>
               {activities.slice(0, 6).map((activity: Activity) => {
                 const isSel = selectedActivityId === activity.id;
                 return (
                   <Pressable
                     key={activity.id}
-                    onPress={() => { Haptics.tap(); setSelectedActivityId(isSel ? null : activity.id); }}
+                    onPress={() => { Haptics.tap(); setSelectedActivityId(isSel ? null : activity.id); setSurpriseActivity(false); }}
                     style={[styles.activityChip, isSel && styles.activityChipSelected]}
                   >
                     <Text style={[styles.activityChipText, isSel && styles.activityChipTextSelected]}>{activity.name}</Text>
@@ -765,6 +776,33 @@ export default function SendMixerRequestScreen() {
                 );
               })}
             </ScrollView>
+          </View>
+
+          {/* Open vs Closed toggle */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Mixer Type</Text>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <Pressable
+                onPress={() => { Haptics.tap(); setIsOpenMixer(false); }}
+                style={[
+                  { flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: 12, borderWidth: 1.5 },
+                  { backgroundColor: !isOpenMixer ? '#FFFFFF' : 'transparent', borderColor: !isOpenMixer ? '#FFFFFF' : 'rgba(255,255,255,0.18)' },
+                ]}
+              >
+                <Text style={{ color: !isOpenMixer ? '#000' : '#FFF', fontWeight: '700', fontSize: 14 }}>🔒 Closed</Text>
+                <Text style={{ color: !isOpenMixer ? '#444' : 'rgba(255,255,255,0.55)', fontSize: 11, marginTop: 2 }}>Invited groups only</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => { Haptics.tap(); setIsOpenMixer(true); }}
+                style={[
+                  { flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: 12, borderWidth: 1.5 },
+                  { backgroundColor: isOpenMixer ? '#FFFFFF' : 'transparent', borderColor: isOpenMixer ? '#FFFFFF' : 'rgba(255,255,255,0.18)' },
+                ]}
+              >
+                <Text style={{ color: isOpenMixer ? '#000' : '#FFF', fontWeight: '700', fontSize: 14 }}>🌐 Open</Text>
+                <Text style={{ color: isOpenMixer ? '#444' : 'rgba(255,255,255,0.55)', fontSize: 11, marginTop: 2 }}>Other groups can join</Text>
+              </Pressable>
+            </View>
           </View>
 
           {/* Message */}

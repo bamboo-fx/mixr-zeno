@@ -85,7 +85,7 @@ export function GelButton({
             colors={
               disabled
                 ? ['rgba(168,85,247,0.18)', 'rgba(124,58,237,0.12)', 'rgba(100,40,200,0.10)']
-                : ['#C084FC', '#A855F7', '#7C3AED']
+                : ['#7AECC4', '#3AE3A0', '#28C988']
             }
             start={{ x: 0, y: 0 }}
             end={{ x: 0, y: 1 }}
@@ -242,7 +242,7 @@ export function GelButton({
         >
           <View style={styles.content}>
             {leftIcon}
-            <Text style={[styles.text, sizeStyles.text, { color: '#A855F7', fontWeight: '600' }]}>
+            <Text style={[styles.text, sizeStyles.text, { color: '#3AE3A0', fontWeight: '600' }]}>
               {title}
             </Text>
             {rightIcon}
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
 
   // ── Primary ──────────────────────────────────────────────────────────────
   primaryShadow: {
-    shadowColor: '#A855F7',
+    shadowColor: '#3AE3A0',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.60,
     shadowRadius: 16,

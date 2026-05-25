@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     borderRadius: 9,
     overflow: 'hidden',
     // Pill drop shadow — lifts it off the track
-    shadowColor: '#7C3AED',
+    shadowColor: '#28C988',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.60,
     shadowRadius: 8,

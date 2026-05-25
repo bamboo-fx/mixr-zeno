@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Image, Modal, TouchableOpacity } from 'react-native';
 import { Tabs, useSegments, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Compass, Users, User, Camera, Globe, UserPlus } from 'lucide-react-native';
+import { Compass, Users, User, Camera, Globe, UserPlus, Plus } from 'lucide-react-native';
+import { colors as C, fonts as F } from '@/lib/theme';
 import Svg, { Circle } from 'react-native-svg';
 import { useQuery } from '@tanstack/react-query';
 import Animated, {
@@ -100,7 +99,7 @@ function TabButton({
     transform: [{ scale: scale.value }],
   }));
 
-  const iconColor = focused ? '#FFFFFF' : 'rgba(255,255,255,0.4)';
+  const iconColor = focused ? C.ink : C.ink3;
 
   return (
     <Pressable
@@ -121,10 +120,10 @@ function TabButton({
 }
 
 const MENU_ITEMS = [
-  { label: 'Add Story',           icon: Camera,   route: '/post-global-story', color: '#A855F7' },
-  { label: 'Add Open Mixer',      icon: Globe,    route: '/create-open-mixer', color: '#5BC4EF' },
-  { label: 'Create Group',        icon: Users,    route: '/create-group',      color: '#C472C8' },
-  { label: 'Send Mixr Request',   icon: UserPlus, route: '/send-mixer-request',color: '#9B70D6' },
+  { label: 'Add Story',           icon: Camera,   route: '/post-global-story', color: C.amber   },
+  { label: 'Add Open Mixer',      icon: Globe,    route: '/create-open-mixer', color: C.navy    },
+  { label: 'Create Group',        icon: Users,    route: '/create-group',      color: C.crimson },
+  { label: 'Send Mixr Request',   icon: UserPlus, route: '/send-mixer-request',color: C.ink     },
 ] as const;
 
 function PlusButton() {
@@ -144,8 +143,6 @@ function PlusButton() {
 
         {/* Menu sheet */}
         <Animated.View entering={SlideInDown.springify().damping(18).stiffness(200)} style={styles.menuSheet}>
-          <BlurView intensity={70} tint="light" style={StyleSheet.absoluteFill} />
-          <View style={[StyleSheet.absoluteFill, styles.menuOverlay]} />
           {MENU_ITEMS.map((item, i) => {
             const Icon = item.icon;
             return (
@@ -159,10 +156,10 @@ function PlusButton() {
                 style={({ pressed }) => [
                   styles.menuItem,
                   i < MENU_ITEMS.length - 1 && styles.menuItemBorder,
-                  pressed && { backgroundColor: 'rgba(168,85,247,0.08)' },
+                  pressed && { backgroundColor: C.surface3 },
                 ]}
               >
-                <View style={[styles.menuIconBg, { backgroundColor: item.color + '22', borderColor: item.color + '44' }]}>
+                <View style={[styles.menuIconBg, { backgroundColor: item.color + '22', borderColor: item.color + '55' }]}>
                   <Icon size={18} color={item.color} strokeWidth={2} />
                 </View>
                 <Text style={styles.menuLabel}>{item.label}</Text>
@@ -180,7 +177,9 @@ function PlusButton() {
         style={styles.plusButtonWrapper}
       >
         <Animated.View style={buttonStyle}>
-          <Image source={NAV_PLUS_BUTTON} style={styles.plusButtonImage} resizeMode="contain" />
+          <View style={styles.plusButtonInner}>
+            <Plus size={28} color={C.bg} strokeWidth={2.6} />
+          </View>
         </Animated.View>
       </Pressable>
     </>
@@ -192,17 +191,6 @@ function CustomTabBar() {
 
   return (
     <View style={[styles.tabBar, { paddingBottom: insets.bottom }]}>
-      {/* Dark blur base */}
-      <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
-      {/* Blue-purple gradient overlay */}
-      <LinearGradient
-        colors={['rgba(91,122,220,0.28)', 'rgba(155,112,214,0.22)', 'rgba(196,114,200,0.18)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={StyleSheet.absoluteFill}
-      />
-      {/* Subtle dark tint to deepen */}
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(10,5,20,0.45)' }]} />
       <View style={styles.topBorder} />
       <View style={[styles.tabRow, { height: 50, paddingTop: 12 }]}>
         {LEFT_ROUTES.map((r) => (
@@ -243,15 +231,13 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-  },
-  lightOverlay: {
-    backgroundColor: 'rgba(255,255,255,0.45)',
+    backgroundColor: C.bg,
   },
   topBorder: {
     position: 'absolute',
     top: 0, left: 0, right: 0,
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(155,112,214,0.5)',
+    backgroundColor: C.hairline,
   },
   tabRow: {
     flexDirection: 'row',
@@ -276,8 +262,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   label: {
+    fontFamily: F.medium,
     fontSize: 10,
-    fontWeight: '600',
     letterSpacing: 0.2,
   },
   badge: {
@@ -285,17 +271,17 @@ const styles = StyleSheet.create({
     top: -5, right: -6,
     minWidth: 16, height: 16,
     borderRadius: 8,
-    backgroundColor: '#FF3B30',
+    backgroundColor: C.crimson,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 3,
     borderWidth: 1.5,
-    borderColor: 'rgba(0,0,0,0.6)',
+    borderColor: C.bg,
   },
   badgeText: {
-    color: '#FFFFFF',
+    fontFamily: F.bold,
+    color: C.ink,
     fontSize: 10,
-    fontWeight: '800',
     lineHeight: 12,
   },
   // Plus button slot — center of tab bar, raised up
@@ -309,14 +295,22 @@ const styles = StyleSheet.create({
     bottom: -4,
     alignSelf: 'center',
   },
-  plusButtonImage: {
-    width: 64,
-    height: 64,
+  plusButtonInner: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: C.ink,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: C.ink,
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 4 },
   },
   // Popup menu
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
   },
   menuSheet: {
     position: 'absolute',
@@ -325,11 +319,9 @@ const styles = StyleSheet.create({
     right: 20,
     borderRadius: 20,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(168,85,247,0.2)',
-  },
-  menuOverlay: {
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: C.hairline,
+    backgroundColor: C.surface,
   },
   menuItem: {
     flexDirection: 'row',
@@ -340,7 +332,7 @@ const styles = StyleSheet.create({
   },
   menuItemBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.08)',
+    borderBottomColor: C.hairline,
   },
   menuIconBg: {
     width: 36,
@@ -351,8 +343,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   menuLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1a1a1a',
+    fontFamily: F.semibold,
+    fontSize: 15,
+    color: C.ink,
   },
 });

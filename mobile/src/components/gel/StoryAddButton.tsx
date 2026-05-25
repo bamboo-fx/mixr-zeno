@@ -45,14 +45,14 @@ export function StoryAddButton({
       >
         {/* Gradient ring */}
         <LinearGradient
-          colors={['#EC4899', '#A855F7', '#7C3AED']}
+          colors={['#EC4899', '#3AE3A0', '#28C988']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.ring}
         >
           <View style={styles.ringInner}>
             <LinearGradient
-              colors={['#F472B6', '#A855F7']}
+              colors={['#F472B6', '#3AE3A0']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.plusCircle}

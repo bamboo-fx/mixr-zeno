@@ -366,6 +366,16 @@ storiesRouter.delete(
         return c.json({ error: "Not authorized to delete this story" }, 403);
       }
 
+      // 5-minute delete window — stories cannot be removed after that.
+      // Social chairs of either group can still delete (moderation safety valve).
+      const ageMs = Date.now() - new Date(story.createdAt).getTime();
+      const FIVE_MIN = 5 * 60 * 1000;
+      if (isUploader && !isSocialChairA && !isSocialChairB && ageMs > FIVE_MIN) {
+        return c.json({
+          error: "Stories can only be deleted within 5 minutes of posting.",
+        }, 403);
+      }
+
       // Soft delete
       await db.mixerStory.update({
         where: { id: storyId },

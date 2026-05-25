@@ -3,7 +3,7 @@ import { View, Text, Image, ScrollView, StyleSheet } from 'react-native';
 import { Users, Star } from 'lucide-react-native';
 import { GlassCard } from '@/components/GlassCard';
 import { Pill } from '@/components/Pill';
-import { DS } from '@/lib/ds';
+import { colors as C, fonts as F } from '@/lib/theme';
 
 // Default group logo
 const DEFAULT_GROUP_LOGO = require('../../assets/images/default-group-logo.png');
@@ -28,7 +28,7 @@ export function GroupCard({
   totalRatings = 0,
 }: GroupCardProps) {
   return (
-    <GlassCard padding={DS.Spacing.md}>
+    <GlassCard padding={14}>
       <View style={styles.container}>
         {/* Cover Image / Avatar */}
         <View style={styles.coverContainer}>
@@ -51,12 +51,12 @@ export function GroupCard({
 
           {/* Member count + Rating */}
           <View style={styles.memberRow}>
-            <Users size={12} color={DS.Color.text3} />
+            <Users size={12} color={C.ink3} />
             <Text style={styles.memberText}>{memberCount} members</Text>
             {starRating !== undefined && starRating !== null && totalRatings > 0 && (
               <>
                 <Text style={styles.memberText}>·</Text>
-                <Star size={12} color="#FBBF24" fill="#FBBF24" />
+                <Star size={12} color={C.amber} fill={C.amber} />
                 <Text style={styles.ratingText}>{starRating.toFixed(1)}</Text>
               </>
             )}
@@ -87,15 +87,13 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: DS.Spacing.md,
+    gap: 14,
   },
   coverContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: DS.Radius.md,
-    backgroundColor: DS.Color.panel2,
-    borderWidth: DS.Stroke.hairline,
-    borderColor: DS.Color.stroke,
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    backgroundColor: C.surface2,
     overflow: 'hidden',
   },
   coverImage: {
@@ -108,13 +106,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: 'rgba(255, 255, 255, 0.85)',
+    fontSize: 22,
+    fontFamily: F.bold,
+    color: C.ink,
   },
   content: {
     flex: 1,
-    gap: 8,
+    gap: 6,
   },
   headerRow: {
     flexDirection: 'row',
@@ -124,9 +122,10 @@ const styles = StyleSheet.create({
   },
   name: {
     flex: 1,
-    fontSize: 16,
-    fontWeight: '600',
-    color: DS.Color.text,
+    fontSize: 15,
+    fontFamily: F.semibold,
+    color: C.ink,
+    letterSpacing: -0.2,
   },
   memberRow: {
     flexDirection: 'row',
@@ -135,18 +134,18 @@ const styles = StyleSheet.create({
   },
   memberText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: DS.Color.text3,
+    fontFamily: F.medium,
+    color: C.ink3,
   },
   ratingText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#FBBF24',
+    fontFamily: F.bold,
+    color: C.amber,
   },
   tagsScroll: {
     marginTop: 2,
-    marginHorizontal: -DS.Spacing.md,
-    paddingHorizontal: DS.Spacing.md,
+    marginHorizontal: -14,
+    paddingHorizontal: 14,
   },
   tagsContent: {
     flexDirection: 'row',
@@ -154,13 +153,13 @@ const styles = StyleSheet.create({
   },
   tag: {
     paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderRadius: 100,
+    paddingVertical: 5,
+    backgroundColor: C.surface2,
+    borderRadius: 999,
   },
   tagText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: DS.Color.text2,
+    fontSize: 11,
+    fontFamily: F.semibold,
+    color: C.ink2,
   },
 });

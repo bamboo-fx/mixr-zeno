@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import MapView, { Marker, Circle, Region } from 'react-native-maps';
+import { isInSocialWindow, socialWindowLabel } from '@/lib/social-window';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -68,7 +69,7 @@ const CATEGORY_COLORS: Record<VenueCategory, string> = {
   dining: '#FB923C',
   quad: '#4ADE80',
   gym: '#F472B6',
-  party: '#A78BFA',
+  party: '#4F7CFF',
   other: '#94A3B8',
 };
 
@@ -86,7 +87,29 @@ const DEFAULT_REGION: Region = {
   longitudeDelta: 0.02,
 };
 
+function OffWindowPlaceholder() {
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, backgroundColor: '#000' }}>
+      <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#181818', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+        <Text style={{ fontSize: 28 }}>🌙</Text>
+      </View>
+      <Text style={{ color: '#fff', fontSize: 22, fontWeight: '700', letterSpacing: -0.5, textAlign: 'center', marginBottom: 8 }}>
+        The map sleeps on weekdays.
+      </Text>
+      <Text style={{ color: '#888', fontSize: 14, textAlign: 'center', lineHeight: 21, maxWidth: 280 }}>
+        Campus heat map is only active {socialWindowLabel()}.
+      </Text>
+    </View>
+  );
+}
+
 export default function MapScreen() {
+  // Hard gate: when off-window, the whole heat map is hidden.
+  if (!isInSocialWindow()) return <OffWindowPlaceholder />;
+  return <MapScreenInner />;
+}
+
+function MapScreenInner() {
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const profile = useAuthStore((s) => s.profile);

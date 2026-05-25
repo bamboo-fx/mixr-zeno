@@ -42,9 +42,13 @@ import { api } from '@/lib/api';
 import type { MixerStatus, PairingMode, MixerChangeRequest, MixerRecap } from '@/lib/types';
 import { MixerRatingModal } from '@/components/MixerRatingModal';
 import { StoryCameraModal } from '@/components/stories/StoryCameraModal';
+import { HeroBlock } from '@/components/mixer-detail/HeroBlock';
+import { PollCard } from '@/components/mixer-detail/PollCard';
+import { RosterCard, abbreviate } from '@/components/mixer-detail/RosterCard';
+import { MyClusterCard } from '@/components/mixer-detail/MyClusterCard';
 
 const STATUS_COLORS: Record<MixerStatus, string> = {
-  upcoming: '#00D4AA',
+  upcoming: '#FFFFFF',
   locked: '#F59E0B',
   live: '#22C55E',
   completed: '#6B7280',
@@ -250,6 +254,19 @@ export default function MixerDetailScreen() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['mixer', id] }),
   });
 
+  const setClusterSizeMutation = useMutation({
+    mutationFn: (size: number) => api.clusters.setSize(id, size, profile!.id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['mixer', id] }),
+  });
+
+  const generateClustersMutation = useMutation({
+    mutationFn: () => api.clusters.generate(id, profile!.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mixer', id] });
+      queryClient.invalidateQueries({ queryKey: ['my-cluster', id] });
+    },
+  });
+
   const rsvpMutation = useMutation<void, Error, string>({
     mutationFn: async (rsvpStatus: string): Promise<void> => {
       if (myParticipant) {
@@ -271,7 +288,7 @@ export default function MixerDetailScreen() {
   if (isLoading) {
     return (
       <View style={{ flex: 1, backgroundColor: '#000000', alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color="#A855F7" />
+        <ActivityIndicator size="large" color="#FFFFFF" />
       </View>
     );
   }
@@ -307,11 +324,11 @@ export default function MixerDetailScreen() {
   const rateGroupId = myGroupId === mixer.groupAId ? mixer.groupBId : myGroupId === mixer.groupBId ? mixer.groupAId : null;
   const rateGroupName = rateGroupId === mixer.groupAId ? (mixer.groupA?.name ?? 'Group A') : (mixer.groupB?.name ?? 'Group B');
 
-  const handleSubmitRating = async (rating: number, comment?: string) => {
+  const handleSubmitRating = async (rating: number, comment?: string, tags?: string[]) => {
     if (!profile?.id || !rateGroupId) return;
     setIsSubmittingRating(true);
     try {
-      await api.ratings.submit({ mixerId: id, raterId: profile.id, ratedGroupId: rateGroupId, rating, comment });
+      await api.ratings.submit({ mixerId: id, raterId: profile.id, ratedGroupId: rateGroupId, rating, comment, tags });
       setRatingModalVisible(false);
       queryClient.invalidateQueries({ queryKey: ['mixer', id] });
       queryClient.invalidateQueries({ queryKey: ['mixers'] });
@@ -385,7 +402,7 @@ export default function MixerDetailScreen() {
                 }}
                 style={{ width: 42, height: 42, backgroundColor: 'rgba(168,85,247,0.25)', borderRadius: 21, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(168,85,247,0.5)' }}
               >
-                <Camera size={18} color="#A855F7" />
+                <Camera size={18} color="#FFFFFF" />
               </Pressable>
             )}
             {mixer.status === 'live' ? (
@@ -400,19 +417,6 @@ export default function MixerDetailScreen() {
           </View>
         </View>
 
-        <Text
-          style={{ fontSize: 24, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5, marginBottom: 6 }}
-          numberOfLines={2}
-        >
-          {mixer.groupA?.name ?? 'Group A'} × {mixer.groupB?.name ?? 'Group B'}
-        </Text>
-
-        {totalAttending > 0 && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Users size={13} color="#6B7280" />
-            <Text style={{ color: '#6B7280', fontSize: 13 }}>{totalAttending} attending</Text>
-          </View>
-        )}
       </LinearGradient>
 
       <ScrollView
@@ -420,52 +424,71 @@ export default function MixerDetailScreen() {
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 48 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Groups side-by-side — hidden for completed recaps */}
+        {/* New-design hero — replaces the old title bar block */}
+        <HeroBlock
+          headlineTop={`${format(new Date(mixer.scheduledStart), 'EEEE')} night`}
+          headlineAccent={`at ${mixer.location || 'TBD'}.`}
+          homeGroupName={mixer.groupA?.name ?? 'Group A'}
+          awayGroupName={mixer.groupB?.name ?? 'Group B'}
+          dateLabel={format(new Date(mixer.scheduledStart), 'EEE M/d')}
+          timeLabel={format(new Date(mixer.scheduledStart), 'h:mm a')}
+          locationLabel={mixer.location || 'TBD'}
+          isGoing={
+            mixer.participants?.some(
+              (p) => p.userId === profile?.id && p.rsvpStatus === 'going',
+            ) ?? false
+          }
+        />
+
+        {/* Polls — theme + activity. Hidden for completed/cancelled mixers. */}
+        {mixer.status !== 'completed' && mixer.status !== 'cancelled' && (
+          <>
+            <PollCard
+              mixerId={id}
+              userId={profile?.id}
+              kind="theme"
+              title="Pick the theme"
+              metaRight="Closes 6 PM"
+            />
+            <PollCard
+              mixerId={id}
+              userId={profile?.id}
+              kind="activity"
+              title="Pick the activity"
+              metaRight="Closes 6 PM"
+            />
+          </>
+        )}
+
+        {/* Roster — replaces the old side-by-side group card */}
         {mixer.status !== 'completed' && (
-        <SectionCard>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            {/* Group A */}
-            <View style={{ flex: 1, alignItems: 'center', gap: 4 }}>
-              <Text
-                style={{ color: '#00D4AA', fontWeight: '800', fontSize: 15, textAlign: 'center' }}
-                numberOfLines={2}
-              >
-                {mixer.groupA?.name ?? 'Group A'}
-              </Text>
-              {mixer.groupA?._count?.members != null && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <Users size={11} color="#6B7280" />
-                  <Text style={{ color: '#6B7280', fontSize: 12 }}>
-                    {mixer.groupA._count.members}
-                  </Text>
-                </View>
-              )}
-            </View>
+          <RosterCard
+            totalConfirmed={groupAParticipants.length + groupBParticipants.length}
+            home={{
+              name: mixer.groupA?.name ?? 'Group A',
+              college: mixer.college?.name ?? '',
+              abbreviation: abbreviate(mixer.groupA?.name ?? 'GA'),
+              goingCount: groupAParticipants.filter((p) => p.rsvpStatus === 'going').length,
+              role: 'Hosting',
+            }}
+            away={{
+              name: mixer.groupB?.name ?? 'Group B',
+              college: mixer.college?.name ?? '',
+              abbreviation: abbreviate(mixer.groupB?.name ?? 'GB'),
+              goingCount: groupBParticipants.filter((p) => p.rsvpStatus === 'going').length,
+              role: 'Joining',
+            }}
+          />
+        )}
 
-            {/* Divider */}
-            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ color: '#4B5563', fontWeight: '900', fontSize: 20 }}>×</Text>
-            </View>
-
-            {/* Group B */}
-            <View style={{ flex: 1, alignItems: 'center', gap: 4 }}>
-              <Text
-                style={{ color: '#FF6B6B', fontWeight: '800', fontSize: 15, textAlign: 'center' }}
-                numberOfLines={2}
-              >
-                {mixer.groupB?.name ?? 'Group B'}
-              </Text>
-              {mixer.groupB?._count?.members != null && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <Users size={11} color="#6B7280" />
-                  <Text style={{ color: '#6B7280', fontSize: 12 }}>
-                    {mixer.groupB._count.members}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </View>
-        </SectionCard>
+        {/* My cluster (only when clusterSize >= 3) */}
+        {mixer.clusterSize >= 3 && profile?.id && (
+          <MyClusterCard
+            mixerId={mixer.id}
+            userId={profile.id}
+            homeGroupId={mixer.groupAId}
+            awayGroupId={mixer.groupBId}
+          />
         )}
 
         {/* Post Story Card — shown when mixer is live and user is admin/social_chair */}
@@ -495,7 +518,7 @@ export default function MixerDetailScreen() {
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-              <Camera size={22} color="#A855F7" />
+              <Camera size={22} color="#FFFFFF" />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 15, marginBottom: 2 }}>
@@ -509,7 +532,7 @@ export default function MixerDetailScreen() {
             </View>
             {!postableMixers[0]?.hasPosted && (
               <View style={{
-                backgroundColor: '#A855F7',
+                backgroundColor: '#FFFFFF',
                 paddingHorizontal: 14,
                 paddingVertical: 8,
                 borderRadius: 20,
@@ -524,12 +547,12 @@ export default function MixerDetailScreen() {
         {pendingChangeRequest && (
           <View style={{ marginHorizontal: 20, marginBottom: 12, backgroundColor: 'rgba(168,139,250,0.08)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(168,139,250,0.25)', padding: 16, gap: 12 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <GitPullRequest size={15} color="#A78BFA" />
-              <Text style={{ color: '#A78BFA', fontWeight: '800', fontSize: 14, flex: 1 }}>
+              <GitPullRequest size={15} color="#4F7CFF" />
+              <Text style={{ color: '#4F7CFF', fontWeight: '800', fontSize: 14, flex: 1 }}>
                 Change Requested
               </Text>
               <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 100, backgroundColor: 'rgba(168,139,250,0.15)' }}>
-                <Text style={{ color: '#A78BFA', fontWeight: '700', fontSize: 11 }}>Pending</Text>
+                <Text style={{ color: '#4F7CFF', fontWeight: '700', fontSize: 11 }}>Pending</Text>
               </View>
             </View>
 
@@ -600,8 +623,8 @@ export default function MixerDetailScreen() {
           <View style={{ gap: 14 }}>
             {/* Date/time */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-              <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#00D4AA15', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#00D4AA30' }}>
-                <Calendar size={18} color="#00D4AA" />
+              <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#FFFFFF15', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#FFFFFF30' }}>
+                <Calendar size={18} color="#FFFFFF" />
               </View>
               <View style={{ flex: 1 }}>
                 <SectionLabel>Date & Time</SectionLabel>
@@ -668,7 +691,7 @@ export default function MixerDetailScreen() {
               style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <MessageCircle size={16} color="#F59E0B" />
+                <MessageCircle size={16} color="#FFFFFF" />
                 <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 15 }}>Instructions</Text>
               </View>
               {instructionsExpanded ? (
@@ -706,7 +729,7 @@ export default function MixerDetailScreen() {
               {/* Group A column */}
               <View style={{ flex: 1 }}>
                 <Text
-                  style={{ color: '#00D4AA', fontWeight: '700', fontSize: 12, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 }}
+                  style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 12, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 }}
                   numberOfLines={1}
                 >
                   {mixer.groupA?.name ?? 'Group A'}
@@ -718,15 +741,15 @@ export default function MixerDetailScreen() {
                         width: 40,
                         height: 40,
                         borderRadius: 20,
-                        backgroundColor: '#00D4AA15',
+                        backgroundColor: '#FFFFFF15',
                         alignItems: 'center',
                         justifyContent: 'center',
                         borderWidth: 1,
-                        borderColor: '#00D4AA30',
+                        borderColor: '#FFFFFF30',
                         flexShrink: 0,
                       }}
                     >
-                      <Text style={{ color: '#00D4AA', fontWeight: '700', fontSize: 15 }}>
+                      <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 15 }}>
                         {p.user?.name?.charAt(0)?.toUpperCase() ?? '?'}
                       </Text>
                     </View>
@@ -903,7 +926,7 @@ export default function MixerDetailScreen() {
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                <UserCheck size={18} color="#A855F7" />
+                <UserCheck size={18} color="#FFFFFF" />
                 <Text style={{ fontSize: 16, fontWeight: '800', color: '#FFFFFF' }}>Your Pairing</Text>
               </View>
 
@@ -930,10 +953,10 @@ export default function MixerDetailScreen() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     borderWidth: 2,
-                    borderColor: '#A855F7',
+                    borderColor: '#FFFFFF',
                   }}
                 >
-                  <Text style={{ color: '#A855F7', fontWeight: '900', fontSize: 22 }}>
+                  <Text style={{ color: '#FFFFFF', fontWeight: '900', fontSize: 22 }}>
                     {myPartner.name?.charAt(0)?.toUpperCase() ?? '?'}
                   </Text>
                 </View>
@@ -977,7 +1000,7 @@ export default function MixerDetailScreen() {
                             borderColor: 'rgba(167,139,250,0.35)',
                           }}
                         >
-                          <Text style={{ color: '#A78BFA', fontSize: 12, fontWeight: '600' }}>{name}</Text>
+                          <Text style={{ color: '#4F7CFF', fontSize: 12, fontWeight: '600' }}>{name}</Text>
                         </View>
                       ))}
                     </View>
@@ -1007,13 +1030,13 @@ export default function MixerDetailScreen() {
                       width: 22,
                       height: 22,
                       borderRadius: 11,
-                      backgroundColor: '#A78BFA20',
+                      backgroundColor: '#4F7CFF20',
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexShrink: 0,
                     }}
                   >
-                    <Text style={{ color: '#A78BFA', fontWeight: '800', fontSize: 11 }}>{i + 1}</Text>
+                    <Text style={{ color: '#4F7CFF', fontWeight: '800', fontSize: 11 }}>{i + 1}</Text>
                   </View>
                   <Text style={{ color: '#D1D5DB', fontSize: 14, lineHeight: 20, flex: 1 }}>{prompt}</Text>
                 </View>
@@ -1024,10 +1047,10 @@ export default function MixerDetailScreen() {
 
         {/* Social Chair Controls */}
         {isChair && mixer.status !== 'completed' && (
-          <SectionCard style={{ borderColor: 'rgba(168,85,247,0.25)' }}>
+          <SectionCard style={{ borderColor: 'rgba(255,255,255,0.10)' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 18 }}>
-              <Zap size={16} color="#A78BFA" />
-              <Text style={{ fontSize: 15, fontWeight: '800', color: '#A78BFA' }}>Social Chair Controls</Text>
+              <Zap size={16} color="#FFFFFF" />
+              <Text style={{ fontSize: 15, fontWeight: '800', color: '#FFFFFF' }}>Social Chair Controls</Text>
             </View>
 
             {/* Pairing Mode toggle */}
@@ -1045,14 +1068,14 @@ export default function MixerDetailScreen() {
                     paddingVertical: 10,
                     borderRadius: 100,
                     alignItems: 'center',
-                    backgroundColor: mixer.pairingMode === mode ? '#A855F7' : 'rgba(255,255,255,0.07)',
+                    backgroundColor: mixer.pairingMode === mode ? '#FFFFFF' : 'rgba(255,255,255,0.07)',
                     borderWidth: 1,
-                    borderColor: mixer.pairingMode === mode ? '#A855F7' : 'transparent',
+                    borderColor: mixer.pairingMode === mode ? '#FFFFFF' : 'transparent',
                   }}
                 >
                   <Text
                     style={{
-                      color: mixer.pairingMode === mode ? '#FFFFFF' : '#6B7280',
+                      color: mixer.pairingMode === mode ? '#000000' : '#6B7280',
                       fontWeight: '700',
                       fontSize: 12,
                       textTransform: 'capitalize',
@@ -1077,7 +1100,7 @@ export default function MixerDetailScreen() {
                 style={{ borderRadius: 100, overflow: 'hidden', marginBottom: 10, opacity: generatePairingsMutation.isPending ? 0.6 : 1 }}
               >
                 <LinearGradient
-                  colors={['#A855F7', '#7C3AED']}
+                  colors={['#3AE3A0', '#3AE3A0']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={{
@@ -1090,12 +1113,78 @@ export default function MixerDetailScreen() {
                   }}
                 >
                   {generatePairingsMutation.isPending ? (
-                    <ActivityIndicator color="#FFFFFF" size="small" />
+                    <ActivityIndicator color="#062a14" size="small" />
                   ) : (
-                    <Zap size={16} color="#FFFFFF" />
+                    <Zap size={16} color="#062a14" />
                   )}
-                  <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>
+                  <Text style={{ color: '#062a14', fontWeight: '800', fontSize: 14 }}>
                     Generate {mixer.pairingMode === 'smart' ? 'Smart' : 'Random'} Pairings
+                  </Text>
+                </LinearGradient>
+              </Pressable>
+            )}
+
+            {/* Cluster size selector */}
+            <SectionLabel>Cluster Size</SectionLabel>
+            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+              {[2, 3, 4, 6].map((size) => {
+                const isActive = mixer.clusterSize === size;
+                return (
+                  <Pressable
+                    key={size}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setClusterSizeMutation.mutate(size);
+                    }}
+                    disabled={setClusterSizeMutation.isPending}
+                    style={{
+                      flex: 1,
+                      paddingVertical: 10,
+                      borderRadius: 100,
+                      alignItems: 'center',
+                      backgroundColor: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.07)',
+                      borderWidth: 1,
+                      borderColor: isActive ? '#FFFFFF' : 'transparent',
+                    }}
+                  >
+                    <Text style={{ color: isActive ? '#000000' : '#6B7280', fontWeight: '700', fontSize: 13 }}>
+                      {size === 2 ? '1v1' : `${Math.ceil(size / 2)}v${Math.floor(size / 2)}`}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {/* Generate Clusters (only when cluster size ≥ 3) */}
+            {mixer.clusterSize >= 3 && (
+              <Pressable
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  generateClustersMutation.mutate();
+                }}
+                disabled={generateClustersMutation.isPending}
+                style={{ borderRadius: 100, overflow: 'hidden', marginBottom: 10, opacity: generateClustersMutation.isPending ? 0.6 : 1 }}
+              >
+                <LinearGradient
+                  colors={['#3AE3A0', '#3AE3A0']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{
+                    borderRadius: 100,
+                    paddingVertical: 14,
+                    alignItems: 'center',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    gap: 8,
+                  }}
+                >
+                  {generateClustersMutation.isPending ? (
+                    <ActivityIndicator color="#062a14" size="small" />
+                  ) : (
+                    <Zap size={16} color="#062a14" />
+                  )}
+                  <Text style={{ color: '#062a14', fontWeight: '800', fontSize: 14 }}>
+                    Generate Clusters
                   </Text>
                 </LinearGradient>
               </Pressable>
@@ -1169,7 +1258,7 @@ export default function MixerDetailScreen() {
                   disabled={statusMutation.isPending}
                 >
                   <LinearGradient
-                    colors={['#22C55E', '#16A34A']}
+                    colors={['#3AE3A0', '#3AE3A0']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={{
@@ -1182,8 +1271,8 @@ export default function MixerDetailScreen() {
                       opacity: statusMutation.isPending ? 0.6 : 1,
                     }}
                   >
-                    <Play size={16} color="#FFFFFF" />
-                    <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>Go Live!</Text>
+                    <Play size={16} color="#062a14" />
+                    <Text style={{ color: '#062a14', fontWeight: '800', fontSize: 14 }}>Go Live!</Text>
                   </LinearGradient>
                 </Pressable>
                 <Pressable
@@ -1193,7 +1282,7 @@ export default function MixerDetailScreen() {
                   }}
                   disabled={statusMutation.isPending}
                   style={{
-                    backgroundColor: 'rgba(245,158,11,0.10)',
+                    backgroundColor: 'rgba(255,255,255,0.06)',
                     borderRadius: 100,
                     paddingVertical: 14,
                     alignItems: 'center',
@@ -1201,12 +1290,12 @@ export default function MixerDetailScreen() {
                     justifyContent: 'center',
                     gap: 8,
                     borderWidth: 1,
-                    borderColor: 'rgba(245,158,11,0.30)',
+                    borderColor: 'rgba(255,255,255,0.18)',
                     opacity: statusMutation.isPending ? 0.6 : 1,
                   }}
                 >
-                  <Lock size={16} color="#F59E0B" />
-                  <Text style={{ color: '#F59E0B', fontWeight: '700', fontSize: 14 }}>Lock Mixer</Text>
+                  <Lock size={16} color="#FFFFFF" />
+                  <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 14 }}>Lock Mixer</Text>
                 </Pressable>
               </View>
             )}
@@ -1220,7 +1309,7 @@ export default function MixerDetailScreen() {
                 disabled={statusMutation.isPending}
               >
                 <LinearGradient
-                  colors={['#22C55E', '#16A34A']}
+                  colors={['#3AE3A0', '#3AE3A0']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={{
@@ -1233,8 +1322,8 @@ export default function MixerDetailScreen() {
                     opacity: statusMutation.isPending ? 0.6 : 1,
                   }}
                 >
-                  <Play size={16} color="#FFFFFF" />
-                  <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>Go Live!</Text>
+                  <Play size={16} color="#062a14" />
+                  <Text style={{ color: '#062a14', fontWeight: '800', fontSize: 14 }}>Go Live!</Text>
                 </LinearGradient>
               </Pressable>
             )}
@@ -1268,7 +1357,7 @@ export default function MixerDetailScreen() {
         {mixer.status === 'completed' && (
           <SectionCard>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-              <Camera size={16} color="#A855F7" />
+              <Camera size={16} color="#FFFFFF" />
               <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 16 }}>Photos</Text>
             </View>
             {recapData && recapData.topStories.filter((s) => s.mediaType === 'image').length > 0 ? (
@@ -1290,7 +1379,7 @@ export default function MixerDetailScreen() {
               </View>
             ) : !recapData ? (
               <View style={{ alignItems: 'center', paddingVertical: 24 }}>
-                <ActivityIndicator size="small" color="#A855F7" />
+                <ActivityIndicator size="small" color="#FFFFFF" />
               </View>
             ) : (
               <View style={{ alignItems: 'center', paddingVertical: 24, gap: 8 }}>
@@ -1356,15 +1445,15 @@ export default function MixerDetailScreen() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: 8,
-                      backgroundColor: 'rgba(245,158,11,0.1)',
+                      backgroundColor: 'rgba(255,255,255,0.06)',
                       borderWidth: 1,
-                      borderColor: 'rgba(245,158,11,0.3)',
+                      borderColor: 'rgba(255,255,255,0.18)',
                       borderRadius: 100,
                       paddingVertical: 14,
                     }}
                   >
-                    <Star size={16} color="#F59E0B" fill="#F59E0B" />
-                    <Text style={{ color: '#F59E0B', fontWeight: '700', fontSize: 14 }}>Rate {rateGroupName}</Text>
+                    <Star size={16} color="#FFFFFF" fill="#FFFFFF" />
+                    <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 14 }}>Rate {rateGroupName}</Text>
                   </Pressable>
                 </>
               )}

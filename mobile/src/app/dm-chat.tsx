@@ -57,7 +57,7 @@ function MessageBubble({ item, isMe }: MessageBubbleProps) {
       <View style={[styles.bubbleGroup, isMe && styles.bubbleGroupMe]}>
         {isMe ? (
           <LinearGradient
-            colors={['#7C3AED', '#A855F7']}
+            colors={['#28C988', '#3AE3A0']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={[styles.bubble, styles.bubbleMe]}
@@ -253,7 +253,7 @@ export default function DMChatScreen() {
 
         <Pressable onPress={handleAvatarPress} style={styles.headerCenter}>
           <LinearGradient
-            colors={['#7C3AED', '#A855F7']}
+            colors={['#28C988', '#3AE3A0']}
             style={styles.headerAvatar}
           >
             <Text style={styles.headerAvatarText}>

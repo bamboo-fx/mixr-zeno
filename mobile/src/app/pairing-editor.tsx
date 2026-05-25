@@ -5,6 +5,7 @@ import {
   ScrollView,
   Pressable,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -87,7 +88,7 @@ const MODE_LABELS: Record<PairingMode, string> = {
 const MODE_COLORS: Record<PairingMode, string> = {
   manual: '#00D4AA',
   random: '#FF6B6B',
-  smart: '#A78BFA',
+  smart: '#4F7CFF',
 };
 
 export default function PairingEditorScreen() {
@@ -100,6 +101,9 @@ export default function PairingEditorScreen() {
   const [selectedA, setSelectedA] = useState<string | null>(null);
   const [localPairings, setLocalPairings] = useState<LocalPairing[]>([]);
   const [savedState, setSavedState] = useState<boolean>(false);
+  // Cluster mode UI state
+  const [moveTarget, setMoveTarget] = useState<{ userId: string; name: string; currentClusterId: string } | null>(null);
+  const profile = useAuthStore((s) => s.profile);
 
   const { data: mixer, isLoading } = useQuery({
     queryKey: ['mixer', mixerId],
@@ -125,6 +129,26 @@ export default function PairingEditorScreen() {
     onSuccess: (data: Pairing[]) => {
       setLocalPairings(data.map((p) => ({ userAId: p.userAId, userBId: p.userBId })));
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    },
+  });
+
+  const isClusterMode = (mixer?.clusterSize ?? 2) >= 3;
+
+  const { data: clusters = [] } = useQuery({
+    queryKey: ['clusters', mixerId],
+    queryFn: () => api.clusters.list(mixerId ?? ''),
+    enabled: !!mixerId && isClusterMode,
+    staleTime: 30_000,
+  });
+
+  const moveMemberMutation = useMutation({
+    mutationFn: (vars: { userId: string; targetClusterId: string }) =>
+      api.clusters.moveMember(mixerId ?? '', vars.userId, vars.targetClusterId, profile?.id ?? ''),
+    onSuccess: () => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      queryClient.invalidateQueries({ queryKey: ['clusters', mixerId] });
+      queryClient.invalidateQueries({ queryKey: ['my-cluster', mixerId] });
+      setMoveTarget(null);
     },
   });
 
@@ -302,8 +326,78 @@ export default function PairingEditorScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 120 }}
       >
+        {/* CLUSTER MODE: render clusters with tap-to-move members */}
+        {isClusterMode ? (
+          clusters.length === 0 ? (
+            <View style={{ alignItems: 'center', paddingTop: 40 }}>
+              <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700', marginBottom: 8 }}>
+                No clusters yet
+              </Text>
+              <Text style={{ color: '#888', fontSize: 13, textAlign: 'center', lineHeight: 19, maxWidth: 280 }}>
+                Hit "Generate Clusters" on the mixer detail to assign participants.
+              </Text>
+            </View>
+          ) : (
+            <View style={{ gap: 14 }}>
+              <Text style={{ color: '#888', fontSize: 12, letterSpacing: 0.8, textTransform: 'uppercase', fontWeight: '700', marginBottom: 4 }}>
+                Clusters · tap a member to move
+              </Text>
+              {clusters.map((cl) => (
+                <View
+                  key={cl.id}
+                  style={{
+                    backgroundColor: '#111',
+                    borderRadius: 14,
+                    borderWidth: 1,
+                    borderColor: 'rgba(255,255,255,0.08)',
+                    padding: 14,
+                    gap: 10,
+                  }}
+                >
+                  <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 14, letterSpacing: -0.2 }}>
+                    {cl.name ?? 'Cluster'}
+                    <Text style={{ color: '#888', fontWeight: '500' }}>  ·  {cl.members.length} {cl.members.length === 1 ? 'member' : 'members'}</Text>
+                  </Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                    {cl.members.map((m) => {
+                      const isHome = m.groupId === mixer.groupAId;
+                      const accent = isHome ? '#4F7CFF' : '#FF4D5E';
+                      return (
+                        <Pressable
+                          key={m.id}
+                          onPress={() => setMoveTarget({
+                            userId: m.userId,
+                            name: m.profile?.name ?? 'Unknown',
+                            currentClusterId: cl.id,
+                          })}
+                          style={({ pressed }) => ({
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 6,
+                            paddingHorizontal: 10,
+                            paddingVertical: 6,
+                            borderRadius: 999,
+                            borderWidth: 1,
+                            borderColor: accent + '55',
+                            backgroundColor: pressed ? accent + '22' : accent + '14',
+                          })}
+                        >
+                          <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: accent }} />
+                          <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 13 }}>
+                            {m.profile?.name ?? 'Unknown'}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              ))}
+            </View>
+          )
+        ) : null}
+
         {/* MANUAL MODE */}
-        {mode === 'manual' && (
+        {!isClusterMode && mode === 'manual' && (
           <View>
             <Text style={{ color: '#6B7280', fontSize: 13, textAlign: 'center', marginBottom: 16 }}>
               {selectedA ? 'Now tap someone from Group B to pair them' : 'Tap someone from Group A first'}
@@ -467,7 +561,7 @@ export default function PairingEditorScreen() {
         )}
 
         {/* RANDOM MODE */}
-        {mode === 'random' && (
+        {!isClusterMode && mode === 'random' && (
           <View>
             <View
               style={{
@@ -555,20 +649,20 @@ export default function PairingEditorScreen() {
         )}
 
         {/* SMART MODE */}
-        {mode === 'smart' && (
+        {!isClusterMode && mode === 'smart' && (
           <View>
             <LinearGradient
-              colors={['#A78BFA20', '#7C3AED10']}
+              colors={['#4F7CFF20', '#28C98810']}
               style={{
                 borderRadius: 16,
                 padding: 20,
                 alignItems: 'center',
                 marginBottom: 20,
                 borderWidth: 1,
-                borderColor: '#A78BFA30',
+                borderColor: '#4F7CFF30',
               }}
             >
-              <Sparkles size={40} color="#A78BFA" style={{ marginBottom: 12 }} />
+              <Sparkles size={40} color="#4F7CFF" style={{ marginBottom: 12 }} />
               <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '800', marginBottom: 6 }}>
                 Smart Pairings
               </Text>
@@ -579,7 +673,7 @@ export default function PairingEditorScreen() {
                 onPress={() => generateMutation.mutate('smart')}
                 disabled={generateMutation.isPending}
                 style={{
-                  backgroundColor: '#A78BFA',
+                  backgroundColor: '#4F7CFF',
                   borderRadius: 14,
                   paddingVertical: 14,
                   paddingHorizontal: 32,
@@ -619,15 +713,15 @@ export default function PairingEditorScreen() {
                           borderRadius: 16,
                           padding: 16,
                           borderWidth: 1,
-                          borderColor: '#A78BFA30',
+                          borderColor: '#4F7CFF30',
                         }}
                       >
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                          <AvatarCircle name={nameA} color="#A78BFA" />
+                          <AvatarCircle name={nameA} color="#4F7CFF" />
                           <View style={{ flex: 1, alignItems: 'center' }}>
-                            <Text style={{ color: '#A78BFA', fontSize: 18, fontWeight: '900' }}>↔</Text>
+                            <Text style={{ color: '#4F7CFF', fontSize: 18, fontWeight: '900' }}>↔</Text>
                           </View>
-                          <AvatarCircle name={nameB} color="#A78BFA" />
+                          <AvatarCircle name={nameB} color="#4F7CFF" />
                           <View style={{ flex: 2 }}>
                             <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '700' }}>
                               {nameA.split(' ')[0]} & {nameB.split(' ')[0]}
@@ -645,8 +739,8 @@ export default function PairingEditorScreen() {
                           <View style={{ backgroundColor: '#00D4AA20', borderRadius: 100, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: '#00D4AA40' }}>
                             <Text style={{ color: '#00D4AA', fontSize: 11, fontWeight: '600' }}>Shared interests</Text>
                           </View>
-                          <View style={{ backgroundColor: '#A78BFA20', borderRadius: 100, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: '#A78BFA40' }}>
-                            <Text style={{ color: '#A78BFA', fontSize: 11, fontWeight: '600' }}>Drinking match</Text>
+                          <View style={{ backgroundColor: '#4F7CFF20', borderRadius: 100, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: '#4F7CFF40' }}>
+                            <Text style={{ color: '#4F7CFF', fontSize: 11, fontWeight: '600' }}>Drinking match</Text>
                           </View>
                         </View>
                       </View>
@@ -705,6 +799,71 @@ export default function PairingEditorScreen() {
           )}
         </Pressable>
       </View>
+
+      {/* Move-member modal (cluster mode only) */}
+      <Modal
+        visible={!!moveTarget}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMoveTarget(null)}
+      >
+        <Pressable
+          onPress={() => setMoveTarget(null)}
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            style={{ width: '100%', maxWidth: 420, backgroundColor: '#111', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', padding: 20, gap: 12 }}
+          >
+            <Text style={{ color: '#FFF', fontSize: 20, fontWeight: '700', letterSpacing: -0.4 }}>
+              Move {moveTarget?.name}
+            </Text>
+            <Text style={{ color: '#888', fontSize: 13, marginBottom: 6 }}>
+              Pick the target cluster.
+            </Text>
+            <View style={{ gap: 8 }}>
+              {clusters.map((cl) => {
+                const isCurrent = cl.id === moveTarget?.currentClusterId;
+                return (
+                  <Pressable
+                    key={cl.id}
+                    onPress={() => {
+                      if (!moveTarget || isCurrent) return;
+                      moveMemberMutation.mutate({ userId: moveTarget.userId, targetClusterId: cl.id });
+                    }}
+                    disabled={isCurrent || moveMemberMutation.isPending}
+                    style={{
+                      paddingHorizontal: 14,
+                      paddingVertical: 12,
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: isCurrent ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.18)',
+                      backgroundColor: isCurrent ? 'rgba(255,255,255,0.04)' : 'transparent',
+                      opacity: moveMemberMutation.isPending ? 0.5 : 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <Text style={{ color: isCurrent ? '#666' : '#FFF', fontSize: 14, fontWeight: '600' }}>
+                      {cl.name ?? 'Cluster'}
+                    </Text>
+                    <Text style={{ color: '#888', fontSize: 12 }}>
+                      {isCurrent ? 'Current' : `${cl.members.length} members`}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Pressable
+              onPress={() => setMoveTarget(null)}
+              style={{ marginTop: 6, paddingVertical: 12, alignItems: 'center', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)' }}
+            >
+              <Text style={{ color: '#FFF', fontSize: 14, fontWeight: '600' }}>Cancel</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }

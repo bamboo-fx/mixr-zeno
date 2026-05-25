@@ -57,6 +57,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 1,
     textTransform: 'uppercase',
-    color: '#A855F7',
+    color: '#3AE3A0',
   },
 });

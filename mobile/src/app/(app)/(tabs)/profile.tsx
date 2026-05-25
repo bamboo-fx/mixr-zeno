@@ -17,6 +17,8 @@ import { useAuthStore } from '@/lib/state/auth-store';
 import { authClient } from '@/lib/auth/auth-client';
 import { useInvalidateSession } from '@/lib/auth/use-session';
 import { LinearGradient } from 'expo-linear-gradient';
+import { colors as C, fonts as F } from '@/lib/theme';
+import { HeaderBackdrop } from '@/components/HeaderBackdrop';
 import {
   LogOut,
   ChevronRight,
@@ -94,17 +96,22 @@ export default function ProfileScreen() {
   const showToast = (msg: string) => { setToastMessage(msg); setToastVisible(true); };
 
   const handleLogout = () => {
+    const doLogout = async () => {
+      Haptics.warning();
+      logout();
+      try { await authClient.signOut(); } catch {}
+      invalidateSession();
+    };
+    if (Platform.OS === 'web') {
+      // Alert.alert doesn't render in expo-web; fall back to native confirm.
+      if (typeof window !== 'undefined' && window.confirm('Log out of mixr?')) {
+        void doLogout();
+      }
+      return;
+    }
     Alert.alert('Log Out', 'Are you sure you want to log out?', [
       { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Log Out', style: 'destructive',
-        onPress: async () => {
-          Haptics.warning();
-          logout();
-          await authClient.signOut();
-          invalidateSession();
-        },
-      },
+      { text: 'Log Out', style: 'destructive', onPress: () => void doLogout() },
     ]);
   };
 
@@ -197,7 +204,7 @@ export default function ProfileScreen() {
   if (!profile) {
     return (
       <View style={styles.loadingScreen}>
-        <ActivityIndicator color="#a855f7" />
+        <ActivityIndicator color={C.ink} />
       </View>
     );
   }
@@ -210,6 +217,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.root}>
+      <HeaderBackdrop height={300} variant="amber" />
       <ToastModal visible={toastVisible} message={toastMessage} onClose={() => setToastVisible(false)} />
       <InterestsModal
         visible={interestsModalVisible}
@@ -226,7 +234,7 @@ export default function ProfileScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#A855F7"
+            tintColor={C.ink}
             progressViewOffset={38}
           />
         }
@@ -242,13 +250,13 @@ export default function ProfileScreen() {
             <View style={styles.avatarRing}>
               {uploadingAvatar ? (
                 <View style={styles.avatarInner}>
-                  <ActivityIndicator color="#a855f7" />
+                  <ActivityIndicator color={C.ink} />
                 </View>
               ) : avatarUrl ? (
                 <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
               ) : (
                 <LinearGradient
-                  colors={['#a855f7', '#ec4899', '#f97316']}
+                  colors={[C.amber, C.crimson]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.avatarInner}
@@ -266,7 +274,7 @@ export default function ProfileScreen() {
           {/* Name + meta */}
           <Text style={styles.name}>{profile.name}</Text>
           <View style={styles.metaRow}>
-            {profile.eduVerified && <CheckCircle size={14} color="#a855f7" />}
+            {profile.eduVerified && <CheckCircle size={14} color={C.amber} />}
             {profile.college && <Text style={styles.metaText}>{profile.college.name}</Text>}
             {yearLabel && <><Text style={styles.metaDot}>·</Text><Text style={styles.metaText}>{yearLabel}</Text></>}
           </View>
@@ -302,13 +310,13 @@ export default function ProfileScreen() {
                   ))}
                 </View>
                 <Pressable onPress={() => { Haptics.tap(); setInterestsModalVisible(true); }} style={styles.editInterestsBtn}>
-                  <Edit3 size={12} color="rgba(168,85,247,0.8)" />
+                  <Edit3 size={12} color={C.ink2} />
                   <Text style={styles.editInterestsTxt}>Edit interests</Text>
                 </Pressable>
               </View>
             ) : (
               <Pressable onPress={() => { Haptics.tap(); setInterestsModalVisible(true); }} style={styles.emptyInterestsBtn}>
-                <Plus size={16} color="rgba(168,85,247,0.6)" />
+                <Plus size={16} color={C.ink2} />
                 <Text style={styles.emptyInterestsTxt}>Add Interests</Text>
               </Pressable>
             )}
@@ -341,10 +349,10 @@ export default function ProfileScreen() {
                 style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
               >
                 <View style={styles.groupImgEmpty}>
-                  <Plus size={18} color="rgba(168,85,247,0.5)" />
+                  <Plus size={18} color={C.ink2} />
                 </View>
                 <Text style={styles.emptyRowText}>Browse Groups</Text>
-                <ChevronRight size={16} color="rgba(255,255,255,0.2)" />
+                <ChevronRight size={16} color={C.ink3} />
               </Pressable>
             </View>
           )}
@@ -369,11 +377,11 @@ export default function ProfileScreen() {
                             {mixer.groupA?.name ?? '?'} <Text style={styles.mixerX}>×</Text> {mixer.groupB?.name ?? '?'}
                           </Text>
                           <View style={styles.mixerMeta}>
-                            {dateStr ? <><Calendar size={11} color="rgba(168,85,247,0.7)" /><Text style={styles.mixerMetaTxt}>{dateStr}</Text></> : null}
-                            {mixer.location ? <><MapPin size={11} color="rgba(168,85,247,0.7)" /><Text style={styles.mixerMetaTxt} numberOfLines={1}>{mixer.location}</Text></> : null}
+                            {dateStr ? <><Calendar size={11} color={C.ink2} /><Text style={styles.mixerMetaTxt}>{dateStr}</Text></> : null}
+                            {mixer.location ? <><MapPin size={11} color={C.ink2} /><Text style={styles.mixerMetaTxt} numberOfLines={1}>{mixer.location}</Text></> : null}
                           </View>
                         </View>
-                        <ChevronRight size={15} color="rgba(255,255,255,0.2)" />
+                        <ChevronRight size={15} color={C.ink3} />
                       </Pressable>
                       {!isLast && <View style={styles.divider} />}
                     </React.Fragment>
@@ -387,10 +395,10 @@ export default function ProfileScreen() {
           <Text style={[styles.sectionLabel, { marginTop: 22 }]}>Settings</Text>
           <View style={styles.card}>
             {[
-              { icon: <Edit3 size={17} color="#a855f7" />, bg: 'rgba(168,85,247,0.15)', label: 'Edit Profile', onPress: () => router.push('/edit-profile') },
-              { icon: <Shield size={17} color="#22c55e" />, bg: 'rgba(34,197,94,0.15)', label: 'Privacy & Safety', onPress: () => router.push('/privacy-settings') },
-              { icon: <Bell size={17} color="#f59e0b" />, bg: 'rgba(245,158,11,0.15)', label: 'Notifications', onPress: () => router.push('/notifications') },
-              { icon: <Palette size={17} color="#3b82f6" />, bg: 'rgba(59,130,246,0.15)', label: 'Appearance', onPress: () => {} },
+              { icon: <Edit3 size={17} color={C.amber} />,   bg: 'rgba(255,133,71,0.14)',  label: 'Edit Profile',      onPress: () => router.push('/edit-profile') },
+              { icon: <Shield size={17} color={C.mint} />,   bg: 'rgba(58,227,169,0.14)',  label: 'Privacy & Safety',  onPress: () => router.push('/privacy-settings') },
+              { icon: <Bell size={17} color={C.crimson} />,  bg: 'rgba(255,64,94,0.14)',   label: 'Notifications',     onPress: () => router.push('/notifications') },
+              { icon: <Palette size={17} color={C.navy} />,  bg: 'rgba(79,124,255,0.14)',  label: 'Appearance',        onPress: () => {} },
             ].map(({ icon, bg, label, onPress }, idx, arr) => (
               <React.Fragment key={label}>
                 <Pressable
@@ -399,7 +407,7 @@ export default function ProfileScreen() {
                 >
                   <View style={[styles.settingsIcon, { backgroundColor: bg }]}>{icon}</View>
                   <Text style={styles.settingsLabel}>{label}</Text>
-                  <ChevronRight size={16} color="rgba(255,255,255,0.2)" />
+                  <ChevronRight size={16} color={C.ink3} />
                 </Pressable>
                 {idx < arr.length - 1 && <View style={styles.divider} />}
               </React.Fragment>
@@ -412,10 +420,10 @@ export default function ProfileScreen() {
               onPress={handleLogout}
               style={({ pressed }) => [styles.settingsRow, pressed && styles.rowPressed]}
             >
-              <View style={[styles.settingsIcon, { backgroundColor: 'rgba(239,68,68,0.15)' }]}>
-                <LogOut size={17} color="#ef4444" />
+              <View style={[styles.settingsIcon, { backgroundColor: 'rgba(255,64,94,0.14)' }]}>
+                <LogOut size={17} color={C.crimson} />
               </View>
-              <Text style={[styles.settingsLabel, { color: '#ef4444' }]}>Log Out</Text>
+              <Text style={[styles.settingsLabel, { color: C.crimson }]}>Log Out</Text>
             </Pressable>
           </View>
 
@@ -431,17 +439,17 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0d0d14' },
-  loadingScreen: { flex: 1, backgroundColor: '#0d0d14', alignItems: 'center', justifyContent: 'center' },
+  root: { flex: 1, backgroundColor: C.bg },
+  loadingScreen: { flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' },
 
   // Toast
   toastWrap: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 120 },
   toast: {
-    backgroundColor: 'rgba(28,28,30,0.95)', borderRadius: 20,
-    paddingHorizontal: 24, paddingVertical: 14,
-    borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: C.surface2, borderRadius: 14,
+    paddingHorizontal: 22, paddingVertical: 12,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: C.hairline,
   },
-  toastText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  toastText: { color: C.ink, fontSize: 14, fontFamily: F.semibold },
 
   // Top bar
   topBar: { alignItems: 'flex-end', paddingHorizontal: 20, marginBottom: 8 },
@@ -450,61 +458,56 @@ const styles = StyleSheet.create({
   avatarSection: { alignItems: 'center', paddingHorizontal: 24, marginBottom: 20 },
   avatarPressable: { alignItems: 'center', justifyContent: 'center', marginBottom: 14, alignSelf: 'center' },
   avatarRing: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    borderWidth: 2.5,
-    borderColor: '#a855f7',
+    width: 96, height: 96, borderRadius: 48,
+    borderWidth: 2,
+    borderColor: C.surface2,
     overflow: 'hidden',
-    backgroundColor: '#1a1a2e',
+    backgroundColor: C.surface,
   },
   avatarInner: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
   avatarImage: { width: '100%', height: '100%' },
-  avatarInitials: { fontSize: 32, fontWeight: '800', color: '#fff', letterSpacing: 0.5 },
+  avatarInitials: { fontSize: 32, fontFamily: F.bold, color: C.ink, letterSpacing: 0.5 },
   cameraBadge: {
     position: 'absolute',
     bottom: 16,
     right: -2,
-    width: 24,
-    height: 24,
+    width: 24, height: 24,
     borderRadius: 12,
-    backgroundColor: '#a855f7',
+    backgroundColor: C.ink,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#0d0d14',
+    borderColor: C.bg,
   },
-  name: { fontSize: 24, fontWeight: '700', color: '#fff', letterSpacing: -0.4, marginBottom: 5, textAlign: 'center' },
+  name: { fontSize: 24, fontFamily: F.bold, color: C.ink, letterSpacing: -0.4, marginBottom: 5, textAlign: 'center' },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 6 },
-  metaText: { fontSize: 13, color: 'rgba(255,255,255,0.4)', fontWeight: '400' },
-  metaDot: { color: 'rgba(255,255,255,0.2)', fontSize: 13 },
-  bioText: { fontSize: 13, color: 'rgba(255,255,255,0.45)', textAlign: 'center', lineHeight: 19 },
+  metaText: { fontSize: 13, color: C.ink2, fontFamily: F.regular },
+  metaDot: { color: C.ink3, fontSize: 13 },
+  bioText: { fontSize: 13, color: C.ink2, textAlign: 'center', lineHeight: 19, fontFamily: F.regular },
 
   // Stats pill
   statsPill: {
     flexDirection: 'row',
     marginHorizontal: 20,
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: C.surface,
     overflow: 'hidden',
     marginBottom: 28,
   },
   statItem: { flex: 1, alignItems: 'center', paddingVertical: 14 },
-  statDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.07)', marginVertical: 10 },
-  statNum: { fontSize: 20, fontWeight: '700', color: '#c084fc', letterSpacing: -0.3 },
-  statLbl: { fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2, letterSpacing: 0.3 },
+  statDivider: { width: 1, backgroundColor: C.hairline, marginVertical: 10 },
+  statNum: { fontSize: 22, fontFamily: F.bold, color: C.ink, letterSpacing: -0.3 },
+  statLbl: { fontSize: 11, color: C.ink3, marginTop: 2, letterSpacing: 0.3, fontFamily: F.medium },
 
   // Body
   body: { paddingHorizontal: 16 },
 
-  // Section label — matches reference exactly
+  // Section label
   sectionLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: F.semibold,
     letterSpacing: 1.5,
-    color: 'rgba(255,255,255,0.35)',
+    color: C.ink3,
     textTransform: 'uppercase',
     marginBottom: 8,
     paddingLeft: 2,
@@ -512,41 +515,37 @@ const styles = StyleSheet.create({
 
   // Card
   card: {
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: C.surface,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
     overflow: 'hidden',
   },
 
   // Divider
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.06)', marginLeft: 60 },
-  rowPressed: { backgroundColor: 'rgba(255,255,255,0.05)' },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: C.hairline, marginLeft: 60 },
+  rowPressed: { backgroundColor: C.surface3 },
 
   // Interests
   interestsPad: { padding: 14, paddingBottom: 10 },
   interestsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginBottom: 10 },
   interestTag: {
-    backgroundColor: 'rgba(168,85,247,0.12)',
+    backgroundColor: C.surface2,
     borderRadius: 20,
     paddingHorizontal: 14,
     paddingVertical: 7,
-    borderWidth: 1,
-    borderColor: 'rgba(168,85,247,0.3)',
   },
-  interestTagText: { color: '#c084fc', fontSize: 13, fontWeight: '600', letterSpacing: 0.3 },
+  interestTagText: { color: C.ink, fontSize: 13, fontFamily: F.semibold, letterSpacing: 0.3 },
   editInterestsBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 2 },
-  editInterestsTxt: { color: 'rgba(168,85,247,0.8)', fontSize: 13, fontWeight: '600' },
+  editInterestsTxt: { color: C.ink2, fontSize: 13, fontFamily: F.semibold },
   emptyInterestsBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 22, gap: 8 },
-  emptyInterestsTxt: { color: 'rgba(168,85,247,0.6)', fontSize: 14, fontWeight: '500' },
+  emptyInterestsTxt: { color: C.ink2, fontSize: 14, fontFamily: F.medium },
 
   // Row (groups / settings)
   row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 13, minHeight: 62 },
   groupImg: { width: 44, height: 44, borderRadius: 13, marginRight: 14 },
-  groupImgEmpty: { width: 44, height: 44, borderRadius: 13, backgroundColor: 'rgba(168,85,247,0.1)', borderWidth: 1, borderColor: 'rgba(168,85,247,0.2)', alignItems: 'center', justifyContent: 'center', marginRight: 14 },
+  groupImgEmpty: { width: 44, height: 44, borderRadius: 13, backgroundColor: C.surface2, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   groupInfo: { flex: 1, marginRight: 10 },
-  groupName: { color: '#fff', fontWeight: '600', fontSize: 15, marginBottom: 2 },
-  groupMeta: { color: 'rgba(255,255,255,0.35)', fontSize: 12 },
+  groupName: { color: C.ink, fontFamily: F.semibold, fontSize: 15, marginBottom: 2 },
+  groupMeta: { color: C.ink3, fontSize: 12, fontFamily: F.regular },
   groupsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -556,8 +555,9 @@ const styles = StyleSheet.create({
     width: 104,
     height: 140,
     borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: '#A855F7',
+    backgroundColor: C.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: C.hairline,
     padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -566,52 +566,48 @@ const styles = StyleSheet.create({
   },
   groupBoxName: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#fff',
+    fontFamily: F.semibold,
+    color: C.ink,
     textAlign: 'center',
     width: '100%',
   },
   groupBoxRolePill: {
-    backgroundColor: 'rgba(168,85,247,0.25)',
+    backgroundColor: C.surface2,
     borderRadius: 20,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(168,85,247,0.5)',
   },
   groupBoxRoleText: {
-    color: '#c084fc',
+    color: C.ink2,
     fontSize: 10,
-    fontWeight: '700',
+    fontFamily: F.bold,
     letterSpacing: 0.5,
   },
   rolePill: {
-    backgroundColor: 'rgba(168,85,247,0.18)',
+    backgroundColor: C.surface2,
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(168,85,247,0.35)',
   },
-  rolePillText: { color: '#c084fc', fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
-  emptyRowText: { flex: 1, color: 'rgba(255,255,255,0.5)', fontSize: 15, fontWeight: '500' },
+  rolePillText: { color: C.ink2, fontSize: 11, fontFamily: F.bold, letterSpacing: 0.5 },
+  emptyRowText: { flex: 1, color: C.ink2, fontSize: 15, fontFamily: F.medium },
 
   // Mixer rows
   mixerRow: { flexDirection: 'row', alignItems: 'center', paddingRight: 16, minHeight: 56 },
-  mixerAccent: { width: 3, alignSelf: 'stretch', backgroundColor: '#a855f7', borderRadius: 2, marginRight: 14 },
+  mixerAccent: { width: 3, alignSelf: 'stretch', backgroundColor: C.amber, borderRadius: 2, marginRight: 14 },
   mixerContent: { flex: 1, paddingVertical: 12, gap: 4 },
-  mixerTitle: { color: '#fff', fontWeight: '600', fontSize: 14 },
-  mixerX: { color: 'rgba(168,85,247,0.7)', fontWeight: '400' },
+  mixerTitle: { color: C.ink, fontFamily: F.semibold, fontSize: 14 },
+  mixerX: { color: C.amber, fontFamily: F.regular },
   mixerMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  mixerMetaTxt: { color: 'rgba(255,255,255,0.4)', fontSize: 11 },
+  mixerMetaTxt: { color: C.ink2, fontSize: 11, fontFamily: F.regular },
 
   // Settings
   settingsRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, minHeight: 52 },
   settingsIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
-  settingsLabel: { flex: 1, color: 'rgba(255,255,255,0.88)', fontSize: 15, fontWeight: '500' },
+  settingsLabel: { flex: 1, color: C.ink, fontSize: 15, fontFamily: F.medium },
 
   // Footer
   footer: { alignItems: 'center', marginTop: 36, marginBottom: 8 },
-  footerTitle: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.2)', letterSpacing: 1 },
-  footerSub: { fontSize: 11, color: 'rgba(255,255,255,0.12)', marginTop: 3 },
+  footerTitle: { fontSize: 12, fontFamily: F.bold, color: C.ink3, letterSpacing: 1 },
+  footerSub: { fontSize: 11, color: C.ink3, marginTop: 3, fontFamily: F.regular },
 });

@@ -137,6 +137,7 @@ model Profile {
   conversationsAsA         DirectConversation[]   @relation("ConversationUserA")
   conversationsAsB         DirectConversation[]   @relation("ConversationUserB")
   directMessagesSent       DirectMessage[]        @relation("DirectMessageSender")
+  mixerVotes               MixerVote[]
 }
 
 model Interest {
@@ -243,6 +244,10 @@ model MixerRequest {
   proposedEnd          DateTime?
   proposedLocation     String
   proposedActivityId   String?
+  // When true, activity is hidden until reveal — overrides proposedActivityId in the UI.
+  surpriseActivity     Boolean   @default(false)
+  // When true, other groups can also join the resulting mixer (open invite).
+  isOpenMixer          Boolean   @default(false)
   message              String?
   status               String    @default("pending") // 'pending' | 'active' | 'expired' | 'cancelled' | 'completed'
   dismissedByRequester Boolean   @default(false)
@@ -315,6 +320,28 @@ model Mixer {
   mixerMedia           MixerMedia[]
   pairingRequests      PairingRequest[]
   changeRequests       MixerChangeRequest[]
+  votes                MixerVote[]
+  clusters             PairingCluster[]
+  // Cluster size: 2 = legacy 1v1 pairings, ≥3 = sub-clusters (e.g. 3v3, 4v4).
+  clusterSize          Int       @default(2)
+}
+
+// Single-vote-per-poll record. kind = "theme" | "activity".
+// optionId references a hardcoded option in src/lib/vote-options.ts.
+model MixerVote {
+  id        String   @id @default(cuid())
+  mixerId   String
+  userId    String
+  kind      String   // "theme" | "activity"
+  optionId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  mixer     Mixer    @relation(fields: [mixerId], references: [id], onDelete: Cascade)
+  user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([mixerId, userId, kind])
+  @@index([mixerId, kind])
 }
 
 model MixerChangeRequest {
@@ -378,6 +405,33 @@ model Pairing {
 
   @@unique([mixerId, userAId])
   @@unique([mixerId, userBId])
+}
+
+// Sub-cluster pairings: 3+ people in the same group. Used when Mixer.clusterSize > 2.
+model PairingCluster {
+  id          String   @id @default(cuid())
+  mixerId     String
+  name        String?  // optional human label, e.g. "Cluster A"
+  revealed    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  mixer       Mixer                  @relation(fields: [mixerId], references: [id], onDelete: Cascade)
+  members     PairingClusterMember[]
+
+  @@index([mixerId])
+}
+
+model PairingClusterMember {
+  id         String   @id @default(cuid())
+  clusterId  String
+  userId     String
+  // Source group (groupAId or groupBId of the mixer) so we can keep balance.
+  groupId    String
+
+  cluster    PairingCluster @relation(fields: [clusterId], references: [id], onDelete: Cascade)
+
+  @@unique([clusterId, userId])
+  @@index([userId])
 }
 
 model MixerFeedback {
@@ -609,6 +663,9 @@ model MixerRating {
   raterId      String
   ratedGroupId String   // Which group is being rated
   rating       Int      // 0-10 scale
+  // CSV of tag keys from a fixed set: "fun" | "organized" | "good-energy" | "mix-again".
+  // Stored as comma-joined string for SQLite compatibility.
+  tags         String   @default("")
   comment      String?
   createdAt    DateTime @default(now())
 

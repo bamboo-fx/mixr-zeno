@@ -3,8 +3,10 @@ import { View, Text, Modal, Pressable, Image, StyleSheet, ScrollView } from 'rea
 import { LinearGradient } from 'expo-linear-gradient';
 import { MapPin, Zap, Users, X } from 'lucide-react-native';
 import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
+import { useQuery } from '@tanstack/react-query';
 import { MetalButton } from '@/components/gel';
 import { DS } from '@/lib/ds';
+import { api } from '@/lib/api';
 import type { Mixer, Profile } from '@/lib/types';
 
 // ─────────────────────────────────────────────
@@ -42,9 +44,9 @@ function HeaderLabel() {
         end={{ x: 1, y: 0 }}
         style={styles.headerLabelGradient}
       >
-        <Zap size={11} color="#C084FC" fill="#C084FC" />
+        <Zap size={11} color="#7AECC4" fill="#7AECC4" />
         <Text style={styles.headerLabelText}>YOUR MIXER HAS STARTED</Text>
-        <Zap size={11} color="#C084FC" fill="#C084FC" />
+        <Zap size={11} color="#7AECC4" fill="#7AECC4" />
       </LinearGradient>
     </Animated.View>
   );
@@ -61,7 +63,7 @@ function ActivityCard({ mixer }: { mixer: Mixer }) {
         style={styles.activityCardInner}
       >
         <View style={styles.activityCardHeader}>
-          <Zap size={14} color="#A855F7" fill="rgba(168,85,247,0.3)" />
+          <Zap size={14} color="#3AE3A0" fill="rgba(168,85,247,0.3)" />
           <Text style={styles.activityName}>{mixer.activity.name}</Text>
         </View>
         {mixer.location ? (
@@ -91,7 +93,7 @@ function AvatarCircle({
   delay: number;
   glowColor?: string;
 }) {
-  const glow = glowColor ?? '#A855F7';
+  const glow = glowColor ?? '#3AE3A0';
   return (
     <Animated.View entering={ZoomIn.delay(delay).springify()} style={{ alignItems: 'center' }}>
       {/* Outer glow ring */}
@@ -123,7 +125,7 @@ function AvatarCircle({
             />
           ) : (
             <LinearGradient
-              colors={['#7C3AED', '#A855F7', '#D946EF']}
+              colors={['#28C988', '#3AE3A0', '#FF4D5E']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center' }}
@@ -154,7 +156,7 @@ function SmallAvatarCircle({ profile, index }: { profile: Profile; index: number
         />
       ) : (
         <LinearGradient
-          colors={['#7C3AED', '#A855F7', '#D946EF']}
+          colors={['#28C988', '#3AE3A0', '#FF4D5E']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={{
@@ -294,13 +296,42 @@ function CaseAContent({
 
 function CaseBContent({
   mixer,
+  profileId,
   onDismiss,
 }: {
   mixer: Mixer;
+  profileId: string;
   onDismiss: () => void;
 }) {
-  // Collect up to 4 unique participant profiles from participants
-  const participantProfiles = useMemo(() => {
+  // If this is a cluster mixer, fetch the user's specific cluster. Otherwise
+  // fall back to showing the first 4 participants (legacy "Case B").
+  const isClusterMixer = (mixer.clusterSize ?? 2) >= 3;
+  const { data: cluster } = useQuery({
+    queryKey: ['my-cluster', mixer.id, profileId],
+    queryFn: () => api.clusters.myCluster(mixer.id, profileId),
+    enabled: isClusterMixer && !!profileId,
+    staleTime: 30_000,
+  });
+
+  // Profiles to show in the stacked avatars row.
+  const participantProfiles = useMemo<Profile[]>(() => {
+    if (isClusterMixer && cluster) {
+      // Map cluster members → Profile (best-effort — fallback to participant lookup).
+      const byId = new Map<string, Profile>();
+      for (const p of mixer.participants ?? []) {
+        if (p.user) byId.set(p.userId, p.user);
+      }
+      const out: Profile[] = [];
+      for (const m of cluster.members) {
+        if (m.userId === profileId) continue; // exclude self
+        const full = byId.get(m.userId);
+        if (full) out.push(full);
+        else if (m.profile) out.push({ id: m.profile.id, name: m.profile.name, avatarUrl: m.profile.avatarUrl } as Profile);
+        if (out.length >= 4) break;
+      }
+      return out;
+    }
+    // Legacy fallback: first 4 unique participants.
     const profiles: Profile[] = [];
     const seen = new Set<string>();
     for (const p of mixer.participants ?? []) {
@@ -311,10 +342,13 @@ function CaseBContent({
       if (profiles.length >= 4) break;
     }
     return profiles;
-  }, [mixer.participants]);
+  }, [isClusterMixer, cluster, mixer.participants, profileId]);
 
-  const totalCount = mixer.participants?.length ?? 0;
-  const extraCount = Math.max(0, totalCount - 4);
+  const totalCount = isClusterMixer && cluster
+    ? cluster.members.length
+    : mixer.participants?.length ?? 0;
+  const extraCount = Math.max(0, totalCount - 1 - 4); // -1 for self
+  const clusterName = isClusterMixer ? cluster?.name : null;
 
   return (
     <ScrollView
@@ -324,7 +358,7 @@ function CaseBContent({
       <HeaderLabel />
 
       <Animated.Text entering={FadeInDown.delay(200).springify()} style={styles.titleLarge}>
-        Meet Your Group
+        {clusterName ? `Meet ${clusterName}` : 'Meet Your Group'}
       </Animated.Text>
 
       {/* Stacked Avatars */}
@@ -393,7 +427,7 @@ function CaseCContent({
           {mixer.groupA?.name ?? 'Group A'}
         </Text>
         <LinearGradient
-          colors={['#A855F7', '#D946EF']}
+          colors={['#3AE3A0', '#FF4D5E']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.openGroupDivider}
@@ -414,7 +448,7 @@ function CaseCContent({
           >
             {/* Activity label */}
             <View style={styles.openActivityLabelRow}>
-              <Zap size={16} color="#A855F7" fill="rgba(168,85,247,0.4)" />
+              <Zap size={16} color="#3AE3A0" fill="rgba(168,85,247,0.4)" />
               <Text style={styles.openActivityName}>{mixer.activity.name}</Text>
             </View>
 
@@ -475,6 +509,9 @@ export function LiveActivationModal({
 }: LiveActivationModalProps) {
   // Determine which case we're in
   const caseType = useMemo<'A' | 'B' | 'C'>(() => {
+    // Cluster mixers force Case B regardless of 1v1 pairings.
+    if ((mixer.clusterSize ?? 2) >= 3) return 'B';
+
     const pairings = mixer.pairings ?? [];
     if (pairings.length === 0) return 'C';
 
@@ -568,7 +605,7 @@ export function LiveActivationModal({
               />
             )}
             {caseType === 'B' && (
-              <CaseBContent mixer={mixer} onDismiss={onDismiss} />
+              <CaseBContent mixer={mixer} profileId={profileId} onDismiss={onDismiss} />
             )}
             {caseType === 'C' && (
               <CaseCContent mixer={mixer} onDismiss={onDismiss} />
@@ -620,7 +657,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 32,
     overflow: 'hidden',
     maxHeight: '88%',
-    shadowColor: '#A855F7',
+    shadowColor: '#3AE3A0',
     shadowOffset: { width: 0, height: -8 },
     shadowOpacity: 0.35,
     shadowRadius: 24,
@@ -660,7 +697,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(168,85,247,0.30)',
   },
   headerLabelText: {
-    color: '#C084FC',
+    color: '#7AECC4',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1.4,
@@ -742,7 +779,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(168,85,247,0.35)',
   },
   interestChipText: {
-    color: '#D8B4FE',
+    color: '#FFE5BC',
     fontSize: 13,
     fontWeight: '700',
   },

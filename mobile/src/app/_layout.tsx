@@ -37,7 +37,7 @@ const MixrDarkTheme: Theme = {
     background: '#211621',
     card: '#211621',
     border: 'rgba(168, 85, 247, 0.25)',
-    primary: '#D8B4FE',
+    primary: '#FFE5BC',
     text: '#FFFFFF',
   },
 };

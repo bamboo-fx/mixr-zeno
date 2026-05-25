@@ -25,10 +25,13 @@ export const auth = betterAuth({
   advanced: {
     trustedProxyHeaders: true,
     disableCSRFCheck: true,
+    // Dev-friendly cookie attributes: work over HTTP on a LAN so we can test
+    // from a phone Safari hitting http://<lan-ip>:3000. Production should
+    // re-enable Secure/SameSite=none behind HTTPS.
+    useSecureCookies: false,
     defaultCookieAttributes: {
-      sameSite: "none",
-      secure: true,
-      partitioned: true,
+      sameSite: "lax",
+      secure: false,
     },
   },
 });

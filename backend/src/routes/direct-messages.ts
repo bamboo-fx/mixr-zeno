@@ -106,6 +106,45 @@ directMessagesRouter.post("/request", async (c) => {
     return c.json({ error: "Cannot message this user" }, 403);
   }
 
+  // Block DMs between users currently paired in the same active mixer —
+  // the mixer is meant to force in-person interaction. Once the mixer is
+  // completed/cancelled the block lifts automatically.
+  const activePairing = await db.pairing.findFirst({
+    where: {
+      OR: [
+        { userAId: senderId, userBId: recipientId },
+        { userAId: recipientId, userBId: senderId },
+      ],
+      mixer: { status: { in: ["upcoming", "locked", "live"] } },
+    },
+    include: { mixer: { select: { status: true } } },
+  });
+  if (activePairing) {
+    return c.json({
+      error: "You're paired with this person — find them in real life. DMs unlock after the mixer ends.",
+    }, 403);
+  }
+
+  // Same rule for sub-cluster mixers: if both users are in the same cluster of
+  // an active mixer, block the DM until the mixer ends.
+  const senderClusters = await db.pairingClusterMember.findMany({
+    where: { userId: senderId, cluster: { mixer: { status: { in: ["upcoming", "locked", "live"] } } } },
+    select: { clusterId: true },
+  });
+  if (senderClusters.length > 0) {
+    const sharedCluster = await db.pairingClusterMember.findFirst({
+      where: {
+        userId: recipientId,
+        clusterId: { in: senderClusters.map((c) => c.clusterId) },
+      },
+    });
+    if (sharedCluster) {
+      return c.json({
+        error: "You're clustered with this person tonight — find them in real life. DMs unlock after the mixer ends.",
+      }, 403);
+    }
+  }
+
   // Check for existing conversation (in either direction)
   let conversation = await db.directConversation.findFirst({
     where: {

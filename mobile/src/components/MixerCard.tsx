@@ -1,9 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MapPin } from 'lucide-react-native';
-import { GlassCard } from '@/components/GlassCard';
 import { StatusBadge, MixerStatus } from '@/components/StatusBadge';
-import { DS } from '@/lib/ds';
+import { colors as C, fonts as F } from '@/lib/theme';
 
 interface MixerCardProps {
   groupA: string;
@@ -59,37 +58,40 @@ export function MixerCard({
     : formatRelativeTime(start);
 
   return (
-    <GlassCard>
-      <View style={styles.container}>
-        {/* Header row */}
-        <View style={styles.headerRow}>
-          <View style={styles.headerContent}>
-            <Text style={styles.title} numberOfLines={1}>
-              {groupA} × {groupB}
-            </Text>
-            <Text style={styles.activity}>{activityName}</Text>
-          </View>
-          <StatusBadge status={status} />
+    <View style={styles.card}>
+      <View style={styles.headerRow}>
+        <View style={styles.headerContent}>
+          <Text style={styles.title} numberOfLines={1}>
+            <Text style={styles.titleHome}>{groupA}</Text>
+            <Text style={styles.titleX}>  ×  </Text>
+            <Text style={styles.titleAway}>{groupB}</Text>
+          </Text>
+          <Text style={styles.activity}>{activityName}</Text>
         </View>
+        <StatusBadge status={status} />
+      </View>
 
-        {/* Footer row */}
-        <View style={styles.footerRow}>
-          <Text style={[styles.time, status === 'live' && { color: '#22C55E' }]}>{timeLabel}</Text>
-          <View style={styles.locationRow}>
-            <MapPin size={14} color={DS.Color.text3} />
-            <Text style={styles.location} numberOfLines={1}>
-              {location}
-            </Text>
-          </View>
+      <View style={styles.footerRow}>
+        <Text style={[styles.time, status === 'live' && { color: C.mint }]}>{timeLabel}</Text>
+        <View style={styles.locationRow}>
+          <MapPin size={13} color={C.ink3} />
+          <Text style={styles.location} numberOfLines={1}>
+            {location}
+          </Text>
         </View>
       </View>
-    </GlassCard>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  card: {
+    backgroundColor: C.surface,
+    borderRadius: 14,
+    padding: 16,
     gap: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: C.hairline,
   },
   headerRow: {
     flexDirection: 'row',
@@ -99,17 +101,21 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     flex: 1,
-    gap: 6,
+    gap: 4,
   },
   title: {
     fontSize: 16,
-    fontWeight: '600',
-    color: DS.Color.text,
+    fontFamily: F.bold,
+    color: C.ink,
+    letterSpacing: -0.3,
   },
+  titleHome: { color: C.navy, fontFamily: F.bold },
+  titleAway: { color: C.crimson, fontFamily: F.bold },
+  titleX:    { color: 'rgba(255,255,255,0.5)', fontFamily: F.regular },
   activity: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: DS.Color.text2,
+    fontSize: 13,
+    fontFamily: F.medium,
+    color: C.ink2,
   },
   footerRow: {
     flexDirection: 'row',
@@ -118,20 +124,21 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   time: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: DS.Color.text2,
+    fontSize: 14,
+    fontFamily: F.semibold,
+    color: C.ink2,
+    letterSpacing: -0.1,
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
     flex: 1,
     justifyContent: 'flex-end',
   },
   location: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: DS.Color.text2,
+    fontSize: 13,
+    fontFamily: F.medium,
+    color: C.ink2,
   },
 });

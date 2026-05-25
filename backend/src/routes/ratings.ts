@@ -3,13 +3,18 @@ import { db } from '../db';
 
 export const ratingsRouter = new Hono();
 
-// Submit a mixer rating (0-10 scale)
+const VALID_TAGS = new Set(['fun', 'organized', 'good-energy', 'mix-again']);
+
+// Submit a mixer rating (0-10 scale) with optional tags array.
 ratingsRouter.post('/submit', async (c) => {
-  const { mixerId, raterId, ratedGroupId, rating, comment } = await c.req.json();
+  const { mixerId, raterId, ratedGroupId, rating, comment, tags } = await c.req.json();
 
   if (!mixerId || !raterId || !ratedGroupId || rating === undefined) {
     return c.json({ error: 'Missing required fields' }, 400);
   }
+  const cleanedTags: string[] = Array.isArray(tags)
+    ? Array.from(new Set(tags.filter((t: unknown): t is string => typeof t === 'string' && VALID_TAGS.has(t))))
+    : [];
 
   if (rating < 0 || rating > 10) {
     return c.json({ error: 'Rating must be between 0 and 10' }, 400);
@@ -56,6 +61,7 @@ ratingsRouter.post('/submit', async (c) => {
     update: {
       rating,
       comment,
+      tags: cleanedTags.join(','),
     },
     create: {
       mixerId,
@@ -63,6 +69,7 @@ ratingsRouter.post('/submit', async (c) => {
       ratedGroupId,
       rating,
       comment,
+      tags: cleanedTags.join(','),
     },
   });
 

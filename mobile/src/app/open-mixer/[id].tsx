@@ -53,7 +53,7 @@ const ACTIVITY_EMOJI: Record<string, string> = {
 const STATUS_COLORS: Record<OpenMixerStatus, string> = {
   open: '#22C55E',
   full: '#F59E0B',
-  live: '#A855F7',
+  live: '#3AE3A0',
   completed: '#6B7280',
   cancelled: '#EF4444',
 };
@@ -99,11 +99,11 @@ function LivePulseBadge() {
           width: 8,
           height: 8,
           borderRadius: 4,
-          backgroundColor: '#A855F7',
+          backgroundColor: '#3AE3A0',
           opacity: pulseAnim,
         }}
       />
-      <Text style={{ color: '#A855F7', fontWeight: '800', fontSize: 12, letterSpacing: 0.6 }}>
+      <Text style={{ color: '#3AE3A0', fontWeight: '800', fontSize: 12, letterSpacing: 0.6 }}>
         LIVE NOW
       </Text>
     </View>
@@ -145,7 +145,7 @@ function Avatar({
   }
   return (
     <LinearGradient
-      colors={['#7C3AED', '#A855F7', '#D946EF']}
+      colors={['#28C988', '#3AE3A0', '#FF4D5E']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={{
@@ -234,7 +234,7 @@ function PartnerRevealModal({
           </Text>
 
           <Animated2.View entering={ZoomIn.delay(300).springify()} style={{ marginBottom: 14 }}>
-            <Avatar uri={partner?.avatarUrl} name={partner?.name ?? '?'} size={88} borderColor={DS.Color.gelPurple} />
+            <Avatar uri={partner?.avatarUrl} name={partner?.name ?? '?'} size={88} borderColor={'#FFFFFF'} />
           </Animated2.View>
 
           <Animated2.Text
@@ -255,7 +255,7 @@ function PartnerRevealModal({
             style={{ width: '100%', borderRadius: DS.Radius.md, overflow: 'hidden' }}
           >
             <LinearGradient
-              colors={['#A855F7', '#7C3AED']}
+              colors={['#3AE3A0', '#28C988']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={{ paddingVertical: 16, alignItems: 'center' }}
@@ -378,7 +378,7 @@ export default function OpenMixerDetailScreen() {
   if (isLoading) {
     return (
       <View style={{ flex: 1, backgroundColor: DS.Color.bg, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color={DS.Color.gelPurple} />
+        <ActivityIndicator size="large" color="#FFFFFF" />
       </View>
     );
   }
@@ -421,7 +421,7 @@ export default function OpenMixerDetailScreen() {
   return (
     <GelBackground>
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 140 }}
+        contentContainerStyle={{ paddingBottom: 220 }}
         showsVerticalScrollIndicator={false}
       >
         {/* ── Hero ─────────────────────────────────────────────────────── */}
@@ -520,7 +520,7 @@ export default function OpenMixerDetailScreen() {
                 </View>
                 <View style={{ height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
                   <LinearGradient
-                    colors={isFull ? ['#F59E0B', '#D97706'] : openMixer.color ? [openMixer.color, openMixer.color + 'CC'] : ['#A855F7', '#7C3AED']}
+                    colors={isFull ? ['#F59E0B', '#D97706'] : openMixer.color ? [openMixer.color, openMixer.color + 'CC'] : ['#3AE3A0', '#28C988']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={{
@@ -644,7 +644,7 @@ export default function OpenMixerDetailScreen() {
                 }}
               >
                 <LinearGradient
-                  colors={isFull ? ['#F59E0B', '#D97706'] : openMixer.color ? [openMixer.color, openMixer.color + 'CC'] : ['#A855F7', '#7C3AED']}
+                  colors={isFull ? ['#F59E0B', '#D97706'] : openMixer.color ? [openMixer.color, openMixer.color + 'CC'] : ['#3AE3A0', '#28C988']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={{
@@ -665,7 +665,7 @@ export default function OpenMixerDetailScreen() {
               <View style={{ gap: DS.Spacing.md }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                   <View style={iconCircleStyle}>
-                    <Calendar size={15} color={DS.Color.gelPurple} />
+                    <Calendar size={15} color="#FFFFFF" />
                   </View>
                   <Text style={{ color: DS.Color.text, fontWeight: '600', fontSize: 14 }}>
                     {format(new Date(openMixer.scheduledStart), "EEE, MMM d 'at' h:mm a")}
@@ -673,7 +673,7 @@ export default function OpenMixerDetailScreen() {
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                   <View style={iconCircleStyle}>
-                    <MapPin size={15} color={DS.Color.gelPurple} />
+                    <MapPin size={15} color="#FFFFFF" />
                   </View>
                   <Text style={{ color: DS.Color.text, fontWeight: '600', fontSize: 14 }}>
                     {openMixer.location}
@@ -682,7 +682,7 @@ export default function OpenMixerDetailScreen() {
                 {openMixer.activity && (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                     <View style={iconCircleStyle}>
-                      <Sparkles size={15} color={DS.Color.gelPurple} />
+                      <Sparkles size={15} color="#FFFFFF" />
                     </View>
                     <Text style={{ color: DS.Color.text, fontWeight: '600', fontSize: 14 }}>
                       {openMixer.activity.name}
@@ -715,7 +715,7 @@ export default function OpenMixerDetailScreen() {
                     uri={openMixer.host?.avatarUrl}
                     name={openMixer.host?.name ?? '?'}
                     size={50}
-                    borderColor={DS.Color.gelPurple}
+                    borderColor={'#FFFFFF'}
                   />
                   <View
                     style={{
@@ -766,7 +766,7 @@ export default function OpenMixerDetailScreen() {
                     borderTopRightRadius: DS.Radius.md,
                   }}
                 />
-                <Text style={[sectionLabelStyle, { color: DS.Color.gelPurple }]}>
+                <Text style={[sectionLabelStyle, { color: '#FFFFFF' }]}>
                   Your Partner
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
@@ -774,7 +774,7 @@ export default function OpenMixerDetailScreen() {
                     uri={myPartner.avatarUrl}
                     name={myPartner.name}
                     size={60}
-                    borderColor={DS.Color.gelPurple}
+                    borderColor={'#FFFFFF'}
                   />
                   <View>
                     <Text style={{ color: DS.Color.text, fontWeight: '800', fontSize: 18 }}>
@@ -787,7 +787,7 @@ export default function OpenMixerDetailScreen() {
                       onPress={() => setRevealModalVisible(true)}
                       style={{ marginTop: 8 }}
                     >
-                      <Text style={{ color: DS.Color.gelPurple, fontWeight: '700', fontSize: 13 }}>
+                      <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13 }}>
                         See reveal again →
                       </Text>
                     </Pressable>
@@ -822,8 +822,8 @@ export default function OpenMixerDetailScreen() {
                     borderColor: DS.Color.stroke,
                   }}
                 >
-                  <Users size={11} color={DS.Color.gelPurple} />
-                  <Text style={{ color: DS.Color.gelPurple, fontWeight: '700', fontSize: 12 }}>
+                  <Users size={11} color="#FFFFFF" />
+                  <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 12 }}>
                     {participantCount}
                   </Text>
                 </View>
@@ -891,8 +891,8 @@ export default function OpenMixerDetailScreen() {
                       marginBottom: DS.Spacing.md,
                     }}
                   >
-                    <Trophy size={15} color={DS.Color.warning} />
-                    <Text style={[sectionLabelStyle, { color: DS.Color.warning }]}>
+                    <Trophy size={15} color="#FFFFFF" />
+                    <Text style={[sectionLabelStyle, { color: '#FFFFFF' }]}>
                       Host Controls
                     </Text>
                   </View>
@@ -909,7 +909,7 @@ export default function OpenMixerDetailScreen() {
                         style={{ borderRadius: DS.Radius.sm, overflow: 'hidden', opacity: participantCount < 2 ? 0.5 : 1 }}
                       >
                         <LinearGradient
-                          colors={['#A855F7', '#7C3AED']}
+                          colors={['#3AE3A0', '#3AE3A0']}
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 0 }}
                           style={{
@@ -922,11 +922,11 @@ export default function OpenMixerDetailScreen() {
                           }}
                         >
                           {pairingsMutation.isPending ? (
-                            <ActivityIndicator size="small" color="#fff" />
+                            <ActivityIndicator size="small" color="#062a14" />
                           ) : (
                             <>
-                              <Zap size={15} color="#fff" />
-                              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>
+                              <Zap size={15} color="#062a14" />
+                              <Text style={{ color: '#062a14', fontWeight: '700', fontSize: 14 }}>
                                 Generate Pairings
                               </Text>
                             </>
@@ -946,7 +946,7 @@ export default function OpenMixerDetailScreen() {
                         style={{ borderRadius: DS.Radius.sm, overflow: 'hidden' }}
                       >
                         <LinearGradient
-                          colors={['#A855F7', '#7C3AED', '#6D28D9']}
+                          colors={['#3AE3A0', '#3AE3A0']}
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 0 }}
                           style={{
@@ -960,11 +960,11 @@ export default function OpenMixerDetailScreen() {
                           }}
                         >
                           {statusMutation.isPending ? (
-                            <ActivityIndicator size="small" color="#fff" />
+                            <ActivityIndicator size="small" color="#062a14" />
                           ) : (
                             <>
-                              <Play size={16} color="#fff" fill="#fff" />
-                              <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>
+                              <Play size={16} color="#062a14" fill="#062a14" />
+                              <Text style={{ color: '#062a14', fontWeight: '800', fontSize: 15 }}>
                                 Go Live
                               </Text>
                             </>
@@ -1026,7 +1026,7 @@ export default function OpenMixerDetailScreen() {
               style={{ borderRadius: DS.Radius.md, overflow: 'hidden' }}
             >
               <LinearGradient
-                colors={['#A855F7', '#7C3AED']}
+                colors={['#3AE3A0', '#28C988']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={{
@@ -1097,19 +1097,19 @@ export default function OpenMixerDetailScreen() {
                 gap: 9,
                 backgroundColor: openMixer.status === 'completed'
                   ? DS.Color.glassDark
-                  : 'rgba(168,85,247,0.12)',
+                  : 'rgba(255,255,255,0.06)',
                 borderWidth: 1,
                 borderColor: openMixer.status === 'completed'
                   ? DS.Color.stroke
-                  : 'rgba(168,85,247,0.40)',
+                  : 'rgba(255,255,255,0.18)',
               }}
             >
               <MessageCircle
                 size={18}
-                color={openMixer.status === 'completed' ? DS.Color.text3 : DS.Color.gelPurple}
+                color={openMixer.status === 'completed' ? DS.Color.text3 : '#FFFFFF'}
               />
               <Text style={{
-                color: openMixer.status === 'completed' ? DS.Color.text3 : DS.Color.gelPurple,
+                color: openMixer.status === 'completed' ? DS.Color.text3 : '#FFFFFF',
                 fontWeight: '700',
                 fontSize: 15,
               }}>

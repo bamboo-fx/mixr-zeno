@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Mixr · Saturday night at Frary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000;
+    --surface: #111;
+    --surface-2: #181818;
+    --line: rgba(255,255,255,0.08);
+    --ink: #FFFFFF;
+    --ink-2: #B8B8B8;
+    --ink-3: #7A7A7A;
+    --mint: #3AE3A0;     /* hero pill only */
+    --amber: #FFB547;
+    --crimson: #FF4D5E;
+    --navy: #4F7CFF;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.011em;
+  }
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0;
+  }
+
+  /* ─────────────────── Phone frame ─────────────────── */
+  .phone {
+    position: relative;
+    width: 390px;
+    height: 830px;
+    border-radius: 50px;
+    background: #000;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.06),
+      0 30px 80px rgba(0,0,0,0.6),
+      0 60px 120px rgba(255,77,94,0.05);
+  }
+  .notch {
+    position: absolute;
+    top: 11px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 34px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 50;
+  }
+
+  /* ─────────────────── Status + nav (fixed inside phone) ─────────────────── */
+  .status-bar {
+    position: absolute;
+    top: 16px;
+    left: 0;
+    right: 0;
+    padding: 0 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 40;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .status-bar .right { display: flex; align-items: center; gap: 6px; }
+  .status-bar svg { display: block; }
+
+  .nav {
+    position: absolute;
+    top: 56px;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    padding: 0 18px;
+    display: grid;
+    grid-template-columns: 36px 1fr 36px;
+    align-items: center;
+    gap: 8px;
+  }
+  .nav-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: none;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.2s ease;
+  }
+  .nav-btn:active { transform: scale(0.92); }
+  .nav-btn:hover { background: rgba(255,255,255,0.14); }
+  .crumb {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  /* ─────────────────── Scroll body ─────────────────── */
+  .scroll {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    padding-top: 100px;        /* clear nav */
+    padding-bottom: 110px;     /* clear CTA */
+    scrollbar-width: none;
+  }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  /* ─────────────────── Hero ─────────────────── */
+  .hero {
+    position: relative;
+    padding: 28px 22px 30px;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background:
+      radial-gradient(60% 50% at 0% 100%, rgba(255,77,94,0.35), transparent 60%),
+      radial-gradient(70% 50% at 100% 100%, rgba(255,181,71,0.25), transparent 60%),
+      radial-gradient(120% 80% at 50% 0%, #1a5d52 0%, #0a3530 25%, #061814 50%, #000 80%);
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.18 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    mix-blend-mode: overlay;
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .going-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 13px 7px 11px;
+    border-radius: 999px;
+    background: rgba(58,227,160,0.15);
+    border: 1px solid rgba(58,227,160,0.35);
+    color: var(--mint);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+  .going-pill .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--mint);
+    box-shadow: 0 0 8px var(--mint);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.55; transform: scale(0.85); }
+  }
+
+  .hero h1 {
+    margin: 16px 0 12px;
+    font-size: 38px;
+    line-height: 1.05;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    color: var(--ink);
+  }
+  .hero h1 .accent {
+    display: block;
+    color: var(--amber);
+  }
+
+  .teams {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 18px;
+  }
+  .teams .home { color: var(--navy); }
+  .teams .away { color: var(--crimson); }
+  .teams .x { color: rgba(255,255,255,0.5); font-weight: 400; margin: 0 6px; }
+
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+  .meta .item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .meta .item svg {
+    opacity: 0.8;
+  }
+  .meta .sep {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    margin: 0 8px;
+  }
+
+  /* ─────────────────── Sections ─────────────────── */
+  .section {
+    padding: 24px 18px 0;
+  }
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+    padding: 0 4px;
+  }
+  .section-head h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+  }
+  .section-head .meta-right {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+  .section-head .meta-right .num {
+    color: var(--amber);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ─────────────────── Card / Rows ─────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 52px 1fr auto;
+    gap: 14px;
+    align-items: center;
+    padding: 16px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .row + .row {
+    border-top: 1px solid var(--line);
+  }
+  .row:hover {
+    background: rgba(255,255,255,0.02);
+  }
+  .row:active { transform: scale(0.997); }
+
+  .stripe {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 0;
+    width: 3px;
+    background: transparent;
+    transition: background 0.25s ease;
+  }
+  .row.voted .stripe { background: var(--crimson); }
+  .row[data-team="home"] .stripe { background: var(--navy); }
+  .row[data-team="away"] .stripe { background: var(--crimson); }
+
+  .crest {
+    width: 52px;
+    height: 52px;
+    border-radius: 13px;
+    background: var(--surface-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    flex-shrink: 0;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  .row.voted .crest {
+    background: linear-gradient(135deg, #FF4D5E, #C81E36);
+    box-shadow: 0 6px 18px rgba(255,77,94,0.45);
+    color: #fff;
+  }
+  .row.voted .crest .emoji { display: none; }
+  .row.voted .crest .check {
+    display: block;
+    animation: pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .crest .check { display: none; }
+  @keyframes pop {
+    0%   { transform: scale(0.2); opacity: 0; }
+    60%  { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Team crests */
+  .crest.team-home {
+    background: linear-gradient(135deg, #4F7CFF, #1E3FB8);
+    box-shadow: 0 6px 18px rgba(79,124,255,0.4);
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+  .crest.team-away {
+    background: linear-gradient(135deg, #FF4D5E, #B61E32);
+    box-shadow: 0 6px 18px rgba(255,77,94,0.4);
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+
+  .row-name {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .row-sub {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-3);
+    letter-spacing: -0.005em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .row-sub .tag {
+    display: inline-flex;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+  .row[data-team="home"] .tag { color: var(--navy); background: rgba(79,124,255,0.14); }
+  .row[data-team="away"] .tag { color: var(--crimson); background: rgba(255,77,94,0.14); }
+
+  .row-right {
+    text-align: right;
+  }
+  .row-num {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    transition: color 0.2s ease;
+  }
+  .row-num.navy    { color: var(--navy); }
+  .row-num.crimson { color: var(--crimson); }
+  .row.voted .row-num { color: var(--crimson); }
+  .row-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-top: 4px;
+  }
+  .row.voted .row-label { color: var(--crimson); }
+  .row[data-team="home"] .row-label { color: var(--navy); }
+  .row[data-team="away"] .row-label { color: var(--crimson); }
+
+  /* ─────────────────── CTA ─────────────────── */
+  .cta-wrap {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 30px 22px 28px;
+    background: linear-gradient(to top, #000 55%, rgba(0,0,0,0.85) 80%, rgba(0,0,0,0) 100%);
+    z-index: 30;
+  }
+  .cta {
+    width: 100%;
+    height: 56px;
+    border-radius: 16px;
+    background: var(--ink);
+    color: #000;
+    border: none;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 10px 30px rgba(255,255,255,0.08);
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+  }
+  .cta:hover { box-shadow: 0 12px 36px rgba(255,255,255,0.12); transform: translateY(-1px); }
+  .cta:active { transform: scale(0.97); }
+  .cta svg { transition: transform 0.2s ease; }
+  .cta:hover svg { transform: translateX(3px); }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="notch"></div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span>9:41</span>
+    <span class="right">
+      <!-- signal -->
+      <svg width="18" height="11" viewBox="0 0 18 11" fill="none" aria-hidden="true">
+        <rect x="0"  y="6" width="3" height="5" rx="0.6" fill="#fff"/>
+        <rect x="5"  y="4" width="3" height="7" rx="0.6" fill="#fff"/>
+        <rect x="10" y="2" width="3" height="9" rx="0.6" fill="#fff"/>
+        <rect x="15" y="0" width="3" height="11" rx="0.6" fill="#fff"/>
+      </svg>
+      <!-- wifi -->
+      <svg width="16" height="11" viewBox="0 0 16 11" fill="none" aria-hidden="true">
+        <path d="M8 10.2a1.4 1.4 0 1 0 0-2.8 1.4 1.4 0 0 0 0 2.8Z" fill="#fff"/>
+        <path d="M3.2 6.2a6.8 6.8 0 0 1 9.6 0" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
+        <path d="M0.8 3.6a10.2 10.2 0 0 1 14.4 0" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      <!-- battery -->
+      <svg width="27" height="12" viewBox="0 0 27 12" fill="none" aria-hidden="true">
+        <rect x="0.5" y="0.5" width="22" height="11" rx="2.5" stroke="#fff" stroke-opacity="0.5"/>
+        <rect x="2"   y="2"   width="18" height="8" rx="1.5" fill="#fff"/>
+        <rect x="24"  y="4"   width="2"  height="4" rx="1"   fill="#fff" fill-opacity="0.5"/>
+      </svg>
+    </span>
+  </div>
+
+  <!-- Nav -->
+  <div class="nav">
+    <button class="nav-btn" aria-label="Back">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="crumb">Mixer</div>
+    <button class="nav-btn" aria-label="Save">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Scroll body -->
+  <div class="scroll">
+
+    <!-- HERO -->
+    <section class="hero">
+      <span class="going-pill"><span class="dot"></span>You're going</span>
+      <h1>Saturday night<span class="accent">at Frary.</span></h1>
+      <div class="teams">
+        <span class="home">PO Soccer</span>
+        <span class="x">×</span>
+        <span class="away">Lit Society</span>
+      </div>
+      <div class="meta">
+        <span class="item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Sat 5/25
+        </span>
+        <span class="sep"></span>
+        <span class="item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          9:00 PM
+        </span>
+        <span class="sep"></span>
+        <span class="item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Pomona
+        </span>
+      </div>
+    </section>
+
+    <!-- THEME POLL -->
+    <section class="section">
+      <div class="section-head">
+        <h2>Pick the theme</h2>
+        <span class="meta-right">Closes 6 PM</span>
+      </div>
+      <div class="card" data-poll="theme">
+
+        <div class="row" data-vote="disco">
+          <span class="stripe"></span>
+          <div class="crest"><span class="emoji">🪩</span><svg class="check" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div>
+            <div class="row-name">Disco Inferno</div>
+            <div class="row-sub">Silver · sequins · strobes</div>
+          </div>
+          <div class="row-right">
+            <div class="row-num">10</div>
+            <div class="row-label">votes</div>
+          </div>
+        </div>
+
+        <div class="row voted" data-vote="indie">
+          <span class="stripe"></span>
+          <div class="crest"><span class="emoji">📸</span><svg class="check" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div>
+            <div class="row-name">Indie Sleaze</div>
+            <div class="row-sub">2008 vibes · flash photos</div>
+          </div>
+          <div class="row-right">
+            <div class="row-num">6</div>
+            <div class="row-label">your vote</div>
+          </div>
+        </div>
+
+        <div class="row" data-vote="desert">
+          <span class="stripe"></span>
+          <div class="crest"><span class="emoji">🌵</span><svg class="check" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div>
+            <div class="row-name">Desert Slow</div>
+            <div class="row-sub">Linen · sand · slow burn</div>
+          </div>
+          <div class="row-right">
+            <div class="row-num">2</div>
+            <div class="row-label">votes</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ACTIVITY POLL -->
+    <section class="section">
+      <div class="section-head">
+        <h2>Pick the activity</h2>
+        <span class="meta-right">Closes 6 PM</span>
+      </div>
+      <div class="card" data-poll="activity">
+
+        <div class="row voted" data-vote="karaoke">
+          <span class="stripe"></span>
+          <div class="crest"><span class="emoji">🎤</span><svg class="check" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div>
+            <div class="row-name">Karaoke Battle</div>
+            <div class="row-sub">Teams of 4 · 90 min</div>
+          </div>
+          <div class="row-right">
+            <div class="row-num">12</div>
+            <div class="row-label">your vote</div>
+          </div>
+        </div>
+
+        <div class="row" data-vote="werewolf">
+          <span class="stripe"></span>
+          <div class="crest"><span class="emoji">🐺</span><svg class="check" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div>
+            <div class="row-name">Werewolf</div>
+            <div class="row-sub">Moderated rounds</div>
+          </div>
+          <div class="row-right">
+            <div class="row-num">5</div>
+            <div class="row-label">votes</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ROSTER -->
+    <section class="section">
+      <div class="section-head">
+        <h2>Who's going</h2>
+        <span class="meta-right"><span class="num">30</span> confirmed</span>
+      </div>
+      <div class="card">
+
+        <div class="row" data-team="home">
+          <span class="stripe"></span>
+          <div class="crest team-home">PO</div>
+          <div>
+            <div class="row-name">PO Men's Soccer</div>
+            <div class="row-sub">Pomona <span class="tag">Hosting</span></div>
+          </div>
+          <div class="row-right">
+            <div class="row-num navy">15</div>
+            <div class="row-label">going</div>
+          </div>
+        </div>
+
+        <div class="row" data-team="away">
+          <span class="stripe"></span>
+          <div class="crest team-away">LS</div>
+          <div>
+            <div class="row-name">Scripps Lit Society</div>
+            <div class="row-sub">Scripps <span class="tag">Joining</span></div>
+          </div>
+          <div class="row-right">
+            <div class="row-num crimson">15</div>
+            <div class="row-label">going</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-wrap">
+    <button class="cta">
+      View pairings
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+
+</div>
+
+<script>
+  // Voting — single-select per poll. Swap votes with spring-pop animation.
+  document.querySelectorAll('[data-poll]').forEach(card => {
+    card.addEventListener('click', (e) => {
+      const row = e.target.closest('.row');
+      if (!row || !card.contains(row)) return;
+
+      const wasVoted = row.classList.contains('voted');
+      // Always exit any previously-voted row
+      card.querySelectorAll('.row.voted').forEach(r => {
+        if (r === row) return;
+        r.classList.remove('voted');
+        const num = r.querySelector('.row-num');
+        const label = r.querySelector('.row-label');
+        num.textContent = String(parseInt(num.textContent, 10) - 1);
+        label.textContent = 'votes';
+      });
+
+      if (wasVoted) {
+        // Tap voted row again → unvote
+        row.classList.remove('voted');
+        const num = row.querySelector('.row-num');
+        const label = row.querySelector('.row-label');
+        num.textContent = String(parseInt(num.textContent, 10) - 1);
+        label.textContent = 'votes';
+        return;
+      }
+
+      // Cast new vote
+      row.classList.add('voted');
+      const num = row.querySelector('.row-num');
+      const label = row.querySelector('.row-label');
+      num.textContent = String(parseInt(num.textContent, 10) + 1);
+      label.textContent = 'your vote';
+    });
+  });
+</script>
+
+</body>
+</html>

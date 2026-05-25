@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, ViewStyle, StyleSheet } from 'react-native';
-import { DS } from '@/lib/ds';
+import { colors as C } from '@/lib/theme';
 
 interface GlassCardProps {
   children: React.ReactNode;
@@ -10,22 +10,11 @@ interface GlassCardProps {
 
 export function GlassCard({
   children,
-  padding = DS.Spacing.lg,
+  padding = 16,
   style,
 }: GlassCardProps) {
   return (
-    <View
-      style={[
-        styles.card,
-        {
-          padding,
-          shadowOpacity: DS.Shadow.soft.opacity,
-          shadowRadius: DS.Shadow.soft.radius,
-          shadowOffset: { width: 0, height: DS.Shadow.soft.y },
-        },
-        style,
-      ]}
-    >
+    <View style={[styles.card, { padding }, style]}>
       {children}
     </View>
   );
@@ -33,10 +22,9 @@ export function GlassCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: DS.Color.panel,
-    borderRadius: DS.Radius.lg,
-    borderWidth: DS.Stroke.hairline,
-    borderColor: DS.Color.stroke,
-    shadowColor: '#000',
+    backgroundColor: C.surface,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: C.hairline,
   },
 });

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { Calendar, Lock, CheckCircle2, XCircle } from 'lucide-react-native';
+import { colors as C, fonts as F } from '@/lib/theme';
 
 export type MixerStatus = 'upcoming' | 'locked' | 'live' | 'completed' | 'cancelled';
 
@@ -20,34 +21,34 @@ const STATUS_STYLES: Record<
   { bg: string; border: string; text: string; icon: string }
 > = {
   upcoming: {
-    bg: '#1A1A1A',
-    border: 'rgba(255, 255, 255, 0.10)',
-    text: '#FFFFFF',
-    icon: '#FFFFFF',
+    bg: C.surface2,
+    border: C.hairline,
+    text: C.ink,
+    icon: C.ink,
   },
   locked: {
-    bg: 'rgba(245, 158, 11, 0.12)',
-    border: 'rgba(245, 158, 11, 0.30)',
-    text: '#F59E0B',
-    icon: '#F59E0B',
+    bg: 'rgba(255,181,71,0.14)',
+    border: 'rgba(255,181,71,0.30)',
+    text: C.amber,
+    icon: C.amber,
   },
   live: {
-    bg: 'rgba(34, 197, 94, 0.12)',
-    border: 'rgba(34, 197, 94, 0.35)',
-    text: '#22C55E',
-    icon: '#22C55E',
+    bg: 'rgba(58,227,160,0.14)',
+    border: 'rgba(58,227,160,0.35)',
+    text: C.mint,
+    icon: C.mint,
   },
   completed: {
-    bg: '#1A1A1A',
-    border: 'rgba(255, 255, 255, 0.08)',
-    text: '#606060',
-    icon: '#606060',
+    bg: C.surface2,
+    border: C.hairline,
+    text: C.ink3,
+    icon: C.ink3,
   },
   cancelled: {
-    bg: '#1A1A1A',
-    border: 'rgba(255, 255, 255, 0.08)',
-    text: '#606060',
-    icon: '#606060',
+    bg: C.surface2,
+    border: C.hairline,
+    text: C.ink3,
+    icon: C.ink3,
   },
 };
 
@@ -123,8 +124,8 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.3,
+    fontFamily: F.bold,
+    letterSpacing: 0.4,
   },
   dotContainer: {
     width: 8,
@@ -137,12 +138,12 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#22C55E',
+    backgroundColor: C.mint,
   },
   dotCore: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#22C55E',
+    backgroundColor: C.mint,
   },
 });

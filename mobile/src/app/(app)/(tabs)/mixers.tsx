@@ -54,6 +54,8 @@ import { LiveActivationModal } from '@/components/mixer/LiveActivationModal';
 import { MixerIcon } from '@/components/MixerIcon';
 import { DS } from '@/lib/ds';
 import { Haptics } from '@/lib/haptics';
+import { colors as C, fonts as F } from '@/lib/theme';
+import { HeaderBackdrop } from '@/components/HeaderBackdrop';
 import type { MixerStatus as MixerStatusBadge } from '@/components/StatusBadge';
 
 // App logo for header
@@ -269,8 +271,8 @@ function IncomingRequestCard({
               </Pressable>
               <View style={{ width: 0.5, backgroundColor: 'rgba(255,255,255,0.07)' }} />
               <Pressable onPress={() => { Haptics.success(); onAccept(); }} disabled={isPending} style={{ flex: 1, paddingVertical: 10, alignItems: 'center' }}>
-                {isPending ? <ActivityIndicator size="small" color="#A855F7" /> : (
-                  <Text style={{ color: '#A855F7', fontSize: 13, fontWeight: '800' }}>Accept</Text>
+                {isPending ? <ActivityIndicator size="small" color="#3AE3A0" /> : (
+                  <Text style={{ color: '#3AE3A0', fontSize: 13, fontWeight: '800' }}>Accept</Text>
                 )}
               </Pressable>
             </View>
@@ -295,7 +297,7 @@ function IncomingRequestCard({
               <Text style={{ color: '#F59E0B', fontWeight: '800', fontSize: 15 }}>Counter</Text>
             </Pressable>
             <Pressable onPress={() => { setDetailVisible(false); onAccept(); }} disabled={isPending} style={{ flex: 1, borderRadius: 12, overflow: 'hidden' }}>
-              <LinearGradient colors={['#A855F7', '#7C3AED']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ paddingVertical: 14, alignItems: 'center' }}>
+              <LinearGradient colors={['#3AE3A0', '#28C988']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ paddingVertical: 14, alignItems: 'center' }}>
                 {isPending ? <ActivityIndicator size="small" color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>Accept</Text>}
               </LinearGradient>
             </Pressable>
@@ -381,8 +383,8 @@ function MultiGroupIncomingRequestCard({
                 </Pressable>
                 <View style={{ width: 0.5, backgroundColor: 'rgba(255,255,255,0.07)' }} />
                 <Pressable onPress={() => { Haptics.success(); onAccept(); }} disabled={isPending} style={{ flex: 1, paddingVertical: 10, alignItems: 'center' }}>
-                  {isPending ? <ActivityIndicator size="small" color="#A855F7" /> : (
-                    <Text style={{ color: '#A855F7', fontSize: 13, fontWeight: '800' }}>Accept</Text>
+                  {isPending ? <ActivityIndicator size="small" color="#3AE3A0" /> : (
+                    <Text style={{ color: '#3AE3A0', fontSize: 13, fontWeight: '800' }}>Accept</Text>
                   )}
                 </Pressable>
               </View>
@@ -406,7 +408,7 @@ function MultiGroupIncomingRequestCard({
               <Text style={{ color: '#EF4444', fontWeight: '800', fontSize: 15 }}>Decline</Text>
             </Pressable>
             <Pressable onPress={() => { setDetailVisible(false); onAccept(); }} disabled={isPending} style={{ flex: 1, borderRadius: 12, overflow: 'hidden' }}>
-              <LinearGradient colors={['#A855F7', '#7C3AED']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ paddingVertical: 14, alignItems: 'center' }}>
+              <LinearGradient colors={['#3AE3A0', '#28C988']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ paddingVertical: 14, alignItems: 'center' }}>
                 {isPending ? <ActivityIndicator size="small" color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>Accept</Text>}
               </LinearGradient>
             </Pressable>
@@ -437,7 +439,7 @@ function MultiGroupSentRequestCard({
   const invitedGroups = request.invitedGroups ?? [];
   const isPending = request.requestStatus === 'pending';
   const isDone = !isPending && request.requestStatus !== 'active';
-  const accentColor = isPending ? '#A855F7' : request.requestStatus === 'active' ? '#22C55E' : '#6B7280';
+  const accentColor = isPending ? '#3AE3A0' : request.requestStatus === 'active' ? '#22C55E' : '#6B7280';
 
   const statusLabel = request.requestStatus === 'pending'
     ? `${request.pendingCount} awaiting`
@@ -446,7 +448,7 @@ function MultiGroupSentRequestCard({
     : 'Cancelled';
   const statusColor = request.requestStatus === 'active' ? '#22C55E'
     : request.requestStatus === 'expired' ? '#EF4444'
-    : request.requestStatus === 'pending' ? '#A855F7'
+    : request.requestStatus === 'pending' ? '#3AE3A0'
     : DS.Color.text3;
 
   const dateStr = format(new Date(request.proposedStart), 'EEE, MMM d • h:mm a')
@@ -577,7 +579,7 @@ function SentRequestCard({
   const accentColor = request.status === 'accepted' ? '#22C55E'
     : request.status === 'declined' ? '#EF4444'
     : request.status === 'countered' ? '#F59E0B'
-    : '#A855F7';
+    : '#3AE3A0';
   const statusLabel = request.status === 'pending' ? 'Awaiting'
     : request.status === 'accepted' ? 'Accepted'
     : request.status === 'declined' ? 'Declined'
@@ -819,7 +821,7 @@ function GroupSelectorDropdown({
             />
           ) : (
             <View style={groupSelectorStyles.triggerAvatarFallback}>
-              <Users size={12} color="#A855F7" strokeWidth={2} />
+              <Users size={12} color="#3AE3A0" strokeWidth={2} />
             </View>
           )}
           <Text style={groupSelectorStyles.triggerLabel} numberOfLines={1}>
@@ -871,7 +873,7 @@ function GroupSelectorDropdown({
                       groupSelectorStyles.dropdownAvatarFallback,
                       opt.id === null && { backgroundColor: 'rgba(168,85,247,0.15)' },
                     ]}>
-                      <Users size={12} color={opt.id === null ? '#A855F7' : 'rgba(255,255,255,0.4)'} strokeWidth={2} />
+                      <Users size={12} color={opt.id === null ? '#3AE3A0' : 'rgba(255,255,255,0.4)'} strokeWidth={2} />
                     </View>
                   )}
                   <Text style={[
@@ -881,7 +883,7 @@ function GroupSelectorDropdown({
                     {opt.name}
                   </Text>
                   {isSelected && (
-                    <Check size={14} color="#A855F7" strokeWidth={2.5} />
+                    <Check size={14} color="#3AE3A0" strokeWidth={2.5} />
                   )}
                 </Pressable>
               );
@@ -902,7 +904,7 @@ function NoGroupsOnboarding({ onBrowse, onCreate }: { onBrowse: () => void; onCr
       {/* Icon */}
       <View style={styles.onboardingIconWrap}>
         <LinearGradient
-          colors={['#A855F7', '#7C3AED']}
+          colors={['#3AE3A0', '#28C988']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.onboardingIconGrad}
@@ -1315,7 +1317,8 @@ export default function MixersScreen() {
   };
 
   return (
-    <GelBackground>
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <HeaderBackdrop height={260} variant="crimson" />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
@@ -1323,7 +1326,7 @@ export default function MixersScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#A855F7"
+            tintColor={C.ink}
             progressViewOffset={38}
           />
         }
@@ -1332,7 +1335,7 @@ export default function MixersScreen() {
 
           {/* ── Header ─────────────────────────────────────────────────────── */}
           <View style={[styles.header, { paddingTop: insets.top + DS.Spacing.sm }]}>
-            <Text style={styles.headerTitle}>Mixers</Text>
+            <Text style={{ color: C.ink, fontSize: 38, fontFamily: F.bold, letterSpacing: -1.4 }}>Mixers</Text>
             <NotificationBell onPress={() => router.push('/notifications')} />
           </View>
 
@@ -1346,48 +1349,52 @@ export default function MixersScreen() {
           )}
 
           {/* ── Stats Row ───────────────────────────────────────────────────── */}
-          <LinearGradient
-            colors={['rgba(255,255,255,0.10)', 'rgba(147,51,234,0.45)', 'rgba(255,255,255,0.05)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.statsRowBorder}
-          >
-            <BlurView intensity={65} tint="dark" style={styles.statsRow}>
-              {/* Purple tint overlay */}
-              <View style={{
-                ...StyleSheet.absoluteFillObject,
-                backgroundColor: 'rgba(120,50,180,0.12)',
-              }} />
-              {/* Specular top shine */}
-              <LinearGradient
-                colors={['transparent', 'rgba(255,255,255,0.14)', 'transparent']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1 }}
-                pointerEvents="none"
-              />
-              {/* Total Mixers */}
-              <View style={styles.statCard}>
-                <Text style={styles.statNum}>{mixers.length}</Text>
-                <Text style={styles.statLabel}>Total Mixers</Text>
-              </View>
-              {/* Divider */}
-              <View style={styles.statDivider} />
-              {/* Upcoming */}
-              <View style={styles.statCard}>
-                <Text style={styles.statNum}>{activeMixers.length}</Text>
-                <Text style={styles.statLabel}>Upcoming</Text>
-              </View>
-            </BlurView>
-          </LinearGradient>
+          <View style={{
+            flexDirection: 'row',
+            backgroundColor: C.surface,
+            borderRadius: 14,
+            marginBottom: DS.Spacing.lg,
+            overflow: 'hidden',
+          }}>
+            <View style={styles.statCard}>
+              <Text style={{ color: C.ink, fontSize: 22, fontFamily: F.bold, letterSpacing: -0.3 }}>{mixers.length}</Text>
+              <Text style={{ color: C.ink3, fontSize: 11, fontFamily: F.medium, letterSpacing: 0.3, marginTop: 2 }}>Total Mixers</Text>
+            </View>
+            <View style={{ width: 1, backgroundColor: C.hairline, marginVertical: 10 }} />
+            <View style={styles.statCard}>
+              <Text style={{ color: C.ink, fontSize: 22, fontFamily: F.bold, letterSpacing: -0.3 }}>{activeMixers.length}</Text>
+              <Text style={{ color: C.ink3, fontSize: 11, fontFamily: F.medium, letterSpacing: 0.3, marginTop: 2 }}>Upcoming</Text>
+            </View>
+          </View>
 
           {/* ── Segmented Control ───────────────────────────────────────────── */}
-          <GelSegmentedControl
-            items={SEGMENTS}
-            selectedIndex={selectedIndex}
-            onSelect={setSelectedIndex}
-            style={{ marginBottom: DS.Spacing.lg }}
-          />
+          <View style={{ flexDirection: 'row', backgroundColor: C.surface, borderRadius: 12, padding: 4, marginBottom: DS.Spacing.lg }}>
+            {SEGMENTS.map((label, idx) => {
+              const isActive = idx === selectedIndex;
+              return (
+                <Pressable
+                  key={label}
+                  onPress={() => { Haptics.tap(); setSelectedIndex(idx); }}
+                  style={{
+                    flex: 1,
+                    paddingVertical: 10,
+                    alignItems: 'center',
+                    borderRadius: 9,
+                    backgroundColor: isActive ? C.surface2 : 'transparent',
+                  }}
+                >
+                  <Text style={{
+                    color: isActive ? C.ink : C.ink3,
+                    fontSize: 14,
+                    fontFamily: isActive ? F.semibold : F.medium,
+                    letterSpacing: -0.1,
+                  }}>
+                    {label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
 
           {/* ── Content ─────────────────────────────────────────────────────── */}
           {isLoading ? (
@@ -1513,7 +1520,7 @@ export default function MixersScreen() {
                       style={({ pressed }) => [styles.requestMixerBtn, pressed && { opacity: 0.8 }]}
                     >
                       <LinearGradient
-                        colors={['#A855F7', '#7C3AED']}
+                        colors={['#3AE3A0', '#28C988']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
                         style={styles.requestMixerBtnInner}
@@ -1704,7 +1711,7 @@ export default function MixersScreen() {
           onDismiss={handleActivationDismiss}
         />
       )}
-    </GelBackground>
+    </View>
   );
 }
 

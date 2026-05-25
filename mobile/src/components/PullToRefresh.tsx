@@ -129,7 +129,7 @@ export function PullToRefresh({ onRefresh, refreshing, children }: PullToRefresh
   // Color interpolation: grey → purple/pink as it fills
   const strokeColor = fillProgress.interpolate({
     inputRange: [0, 0.5, 1],
-    outputRange: ['rgba(120,120,140,0.6)', '#A855F7', '#EC4899'],
+    outputRange: ['rgba(120,120,140,0.6)', '#3AE3A0', '#EC4899'],
   });
 
   // Glow opacity tracks fill
@@ -169,12 +169,12 @@ export function PullToRefresh({ onRefresh, refreshing, children }: PullToRefresh
               width: 44,
               height: 44,
               borderRadius: 22,
-              backgroundColor: '#A855F7',
+              backgroundColor: '#3AE3A0',
               opacity: glowOpacity,
               top: -2,
               left: -2,
               // React Native blur via shadow
-              shadowColor: '#A855F7',
+              shadowColor: '#3AE3A0',
               shadowOffset: { width: 0, height: 0 },
               shadowOpacity: 1,
               shadowRadius: 16,

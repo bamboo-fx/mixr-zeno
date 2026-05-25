@@ -163,7 +163,7 @@ function SparklingStar({ size, top, left, right, delay }: { size: 'large' | 'med
     ],
   }));
 
-  const glowColor = size === 'large' ? '#C084FC' : size === 'medium' ? '#A855F7' : '#9333EA';
+  const glowColor = size === 'large' ? '#7AECC4' : size === 'medium' ? '#3AE3A0' : '#9333EA';
 
   return (
     <Animated.View
@@ -488,7 +488,7 @@ export default function OnboardingScreen() {
         <View style={[styles.topBar, { paddingTop: insets.top + 12 }]}>
           {step > 0 ? (
             <Pressable onPress={goBack} style={styles.backBtn} hitSlop={12}>
-              <ChevronLeft size={22} color="#C084FC" />
+              <ChevronLeft size={22} color="#7AECC4" />
             </Pressable>
           ) : (
             <View style={styles.backBtnPlaceholder} />
@@ -538,7 +538,7 @@ export default function OnboardingScreen() {
                 {/* Progress fill */}
                 <Animated.View style={[styles.progressFill, progressStyle]}>
                   <LinearGradient
-                    colors={['#C084FC', '#A855F7', '#9333EA', '#7C3AED']}
+                    colors={['#7AECC4', '#3AE3A0', '#9333EA', '#28C988']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.progressFillGradient}
@@ -735,7 +735,7 @@ function StepPhoto({ avatarUri, onPickImage, onTakePhoto }: StepPhotoProps) {
         {/* Edit badge */}
         <View style={styles.bubbleEditBadge}>
           <LinearGradient
-            colors={['#C084FC', '#A855F7', '#9333EA']}
+            colors={['#7AECC4', '#3AE3A0', '#9333EA']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.bubbleEditBadgeGradient}
@@ -771,7 +771,7 @@ function StepPhoto({ avatarUri, onPickImage, onTakePhoto }: StepPhotoProps) {
                 <View style={styles.photoBtnBottomInnerShadow} />
                 {/* Content */}
                 <View style={styles.photoBtnContentRow}>
-                  <ImageIcon size={24} color="#C084FC" />
+                  <ImageIcon size={24} color="#7AECC4" />
                   <Text style={styles.photoBtnText}>Choose Photo</Text>
                 </View>
               </View>
@@ -1017,7 +1017,7 @@ function Step3({ interests, isLoading, selectedIds, toggle, onCreateInterest, is
   if (isLoading) {
     return (
       <View style={styles.loadingCenter}>
-        <ActivityIndicator color="#A855F7" size="large" />
+        <ActivityIndicator color="#3AE3A0" size="large" />
         <Text style={styles.loadingText}>Loading interests...</Text>
       </View>
     );
@@ -1180,7 +1180,7 @@ const styles = StyleSheet.create({
   },
   dotActive: {
     width: 24,
-    backgroundColor: '#A855F7',
+    backgroundColor: '#3AE3A0',
   },
   dotDone: {
     backgroundColor: '#9333EA',
@@ -1325,7 +1325,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    shadowColor: '#A855F7',
+    shadowColor: '#3AE3A0',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 8,
@@ -1346,7 +1346,7 @@ const styles = StyleSheet.create({
     right: '50%',
     height: 18,
     backgroundColor: 'transparent',
-    shadowColor: '#C084FC',
+    shadowColor: '#7AECC4',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
@@ -1378,7 +1378,7 @@ const styles = StyleSheet.create({
   },
   stepSubtitle: {
     fontSize: 15,
-    color: '#C084FC',
+    color: '#7AECC4',
     textAlign: 'center',
   },
 
@@ -1399,7 +1399,7 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#C084FC',
+    color: '#7AECC4',
     letterSpacing: 0.5,
   },
   fieldLabelRow: {
@@ -1489,7 +1489,7 @@ const styles = StyleSheet.create({
   // New swapped styles - unselected is bright purple, selected is dark
   chipUnselectedBright: {
     borderColor: 'rgba(192,132,252,0.6)',
-    shadowColor: '#A855F7',
+    shadowColor: '#3AE3A0',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
@@ -1512,7 +1512,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   chipTextSelectedDark: {
-    color: '#C084FC',
+    color: '#7AECC4',
   },
   chipEmoji: {
     fontSize: 14,
@@ -1538,7 +1538,7 @@ const styles = StyleSheet.create({
   vibeValueText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#C084FC',
+    color: '#7AECC4',
   },
   sliderLabels: {
     flexDirection: 'row',
@@ -1612,7 +1612,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(147,51,234,0.25)',
   },
   countBadgeActive: {
-    borderColor: '#A855F7',
+    borderColor: '#3AE3A0',
   },
   countBadgeText: {
     fontSize: 13,
@@ -1620,7 +1620,7 @@ const styles = StyleSheet.create({
     color: 'rgba(192,132,252,0.5)',
   },
   countBadgeTextActive: {
-    color: '#C084FC',
+    color: '#7AECC4',
   },
   interestsGrid: {
     flexDirection: 'row',
@@ -1642,7 +1642,7 @@ const styles = StyleSheet.create({
   // New swapped styles for interest chips - unselected is bright purple, selected is dark
   interestChipUnselectedBright: {
     borderColor: 'rgba(192,132,252,0.6)',
-    shadowColor: '#A855F7',
+    shadowColor: '#3AE3A0',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
@@ -1667,7 +1667,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   interestChipTextSelectedDark: {
-    color: '#C084FC',
+    color: '#7AECC4',
   },
 
   // Celebration
@@ -1724,7 +1724,7 @@ const styles = StyleSheet.create({
   },
   statPillBright: {
     borderColor: 'rgba(192,132,252,0.6)',
-    shadowColor: '#A855F7',
+    shadowColor: '#3AE3A0',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
@@ -1768,7 +1768,7 @@ const styles = StyleSheet.create({
     height: 20,
     backgroundColor: 'transparent',
     borderRadius: 24,
-    shadowColor: '#7C3AED',
+    shadowColor: '#28C988',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.6,
     shadowRadius: 20,
@@ -2143,7 +2143,7 @@ const styles = StyleSheet.create({
     height: 16,
     backgroundColor: 'transparent',
     borderRadius: 32,
-    shadowColor: '#A855F7',
+    shadowColor: '#3AE3A0',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
     shadowRadius: 16,
@@ -2193,7 +2193,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   collegeCardWrapperSelected: {
-    shadowColor: '#C084FC',
+    shadowColor: '#7AECC4',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.6,
     shadowRadius: 24,
@@ -2255,7 +2255,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
   },
   liquidButtonTextSelected: {
-    color: '#C084FC',
+    color: '#7AECC4',
     textShadowColor: 'rgba(192,132,252,0.5)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
@@ -2288,7 +2288,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   liquidButtonShadowSelected: {
-    shadowColor: '#A855F7',
+    shadowColor: '#3AE3A0',
     shadowOpacity: 0.6,
     shadowRadius: 16,
   },
@@ -2524,7 +2524,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.9)',
   },
   collegeBtnTextSelected: {
-    color: '#C084FC',
+    color: '#7AECC4',
   },
   collegeBtnCheck: {
     width: 22,
@@ -2582,7 +2582,7 @@ const styles = StyleSheet.create({
     elevation: 15,
   },
   liquidCollegeGlowDeepSelected: {
-    shadowColor: '#7C3AED',
+    shadowColor: '#28C988',
     shadowOpacity: 0.6,
   },
   liquidCollegeGlowMid: {
@@ -2600,7 +2600,7 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   liquidCollegeGlowMidSelected: {
-    shadowColor: '#A855F7',
+    shadowColor: '#3AE3A0',
     shadowOpacity: 0.5,
   },
   liquidCollegeBtnMain: {
@@ -2699,7 +2699,7 @@ const styles = StyleSheet.create({
   },
   liquidCollegeLogoContainerSelected: {
     backgroundColor: '#FFFFFF',
-    shadowColor: '#A855F7',
+    shadowColor: '#3AE3A0',
     shadowOpacity: 0.3,
   },
   liquidCollegeLogoImg: {
@@ -2833,7 +2833,7 @@ const styles = StyleSheet.create({
   },
   collegeLogoSelected: {
     backgroundColor: '#FFFFFF',
-    shadowColor: '#C084FC',
+    shadowColor: '#7AECC4',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
     shadowRadius: 12,
@@ -2880,7 +2880,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   liquidGlassWrapperSelected: {
-    shadowColor: '#A855F7',
+    shadowColor: '#3AE3A0',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.5,
     shadowRadius: 20,
@@ -2988,7 +2988,7 @@ const styles = StyleSheet.create({
   vibeButtonSelected: {
     backgroundColor: 'rgba(168,85,247,0.35)',
     borderColor: 'rgba(192,132,252,0.6)',
-    shadowColor: '#A855F7',
+    shadowColor: '#3AE3A0',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
     shadowRadius: 16,
@@ -2997,7 +2997,7 @@ const styles = StyleSheet.create({
   vibeButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#C084FC',
+    color: '#7AECC4',
   },
   vibeButtonTextSelected: {
     color: '#FFFFFF',
@@ -3028,7 +3028,7 @@ const styles = StyleSheet.create({
   vibeCollegeCardSelected: {
     backgroundColor: 'rgba(168,85,247,0.35)',
     borderColor: 'rgba(192,132,252,0.6)',
-    shadowColor: '#A855F7',
+    shadowColor: '#3AE3A0',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
     shadowRadius: 16,
@@ -3054,7 +3054,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontWeight: '600',
-    color: '#C084FC',
+    color: '#7AECC4',
   },
   vibeCollegeTextSelected: {
     color: '#FFFFFF',
@@ -3081,7 +3081,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   glassChipWrapperSelected: {
-    shadowColor: '#C084FC',
+    shadowColor: '#7AECC4',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.5,
     shadowRadius: 20,
@@ -3187,7 +3187,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#A855F7',
+    backgroundColor: '#3AE3A0',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
@@ -3368,7 +3368,7 @@ const styles = StyleSheet.create({
   photoBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#C084FC',
+    color: '#7AECC4',
     letterSpacing: 0.3,
   },
   photoHintText: {

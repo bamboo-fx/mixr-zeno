@@ -1,0 +1,798 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Mixr — Social planning for the 5Cs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#000000;
+    --bg-2:#0A0A0A;
+    --surface:#111111;
+    --surface-2:#181818;
+    --surface-3:#222222;
+    --line:rgba(255,255,255,0.08);
+    --line-2:rgba(255,255,255,0.14);
+    --ink:#FFFFFF;
+    --ink-2:#B8B8B8;
+    --ink-3:#7A7A7A;
+    --ink-4:#525252;
+    --mint:#3AE3A0;
+    --mint-2:#28C988;
+    --mint-soft:rgba(58,227,160,0.10);
+    --amber:#FFB547;
+    --crimson:#FF4D5E;
+    --navy:#4F7CFF;
+    --purple:#B57BFF;
+    --font:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
+  html,body{
+    background:#000;
+    color:var(--ink);
+    font-family:var(--font);
+    font-size:15px;
+    letter-spacing:-0.011em;
+    line-height:1.5;
+    overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;transition:transform .15s ease, background .2s ease, box-shadow .2s ease}
+  button:active{transform:scale(0.97)}
+  img{display:block;max-width:100%}
+
+  /* ============== NAVBAR ============== */
+  .nav{
+    position:fixed;top:0;left:0;right:0;z-index:100;
+    padding:18px 36px;
+    display:flex;align-items:center;justify-content:space-between;
+    background:rgba(0,0,0,0.6);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border-bottom:1px solid var(--line);
+  }
+  .logo{
+    display:flex;align-items:center;gap:8px;
+    font-size:22px;font-weight:800;letter-spacing:-0.04em;
+  }
+  .logo .dot{
+    width:8px;height:8px;border-radius:50%;background:var(--mint);
+    box-shadow:0 0 12px var(--mint);
+  }
+  .nav-links{
+    display:flex;align-items:center;gap:32px;
+    font-size:14px;font-weight:500;
+    color:var(--ink-2);
+  }
+  .nav-links a{transition:color .2s ease}
+  .nav-links a:hover{color:#fff}
+  .nav-cta{display:flex;align-items:center;gap:12px}
+  .btn-ghost{padding:10px 16px;font-size:14px;font-weight:600;color:var(--ink-2)}
+  .btn-primary{
+    padding:10px 18px;background:#fff;color:#000;border-radius:10px;
+    font-size:14px;font-weight:700;letter-spacing:-0.01em;
+  }
+  .btn-primary:hover{background:#f5f5f5}
+  @media (max-width:760px){
+    .nav{padding:16px 22px}
+    .nav-links{display:none}
+  }
+
+  /* ============== HERO ============== */
+  .hero{
+    position:relative;
+    padding:160px 36px 100px;
+    overflow:hidden;
+    min-height:90vh;
+    display:flex;flex-direction:column;justify-content:center;
+  }
+  .hero::before{
+    content:"";position:absolute;inset:0;z-index:0;
+    background:
+      radial-gradient(40% 50% at 0% 80%, rgba(255,77,94,0.25) 0%, transparent 60%),
+      radial-gradient(50% 50% at 100% 80%, rgba(255,181,71,0.20) 0%, transparent 60%),
+      radial-gradient(100% 80% at 50% 0%, #1a5d52 0%, #0a3530 25%, #061814 50%, #000 80%);
+  }
+  .hero::after{
+    content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.16 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity:0.7;mix-blend-mode:overlay;
+  }
+  .hero-content{position:relative;z-index:2;max-width:1100px;margin:0 auto;text-align:center;width:100%}
+
+  .hero-eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:7px 14px;
+    background:var(--mint-soft);
+    border:1px solid rgba(58,227,160,0.3);
+    border-radius:999px;
+    font-size:13px;font-weight:600;
+    color:var(--mint);
+    margin-bottom:28px;
+  }
+  .hero-eyebrow .dot{
+    width:6px;height:6px;border-radius:50%;background:var(--mint);
+    box-shadow:0 0 8px var(--mint);
+    animation:pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+  .hero h1{
+    font-size:clamp(48px, 9vw, 104px);
+    font-weight:800;
+    letter-spacing:-0.04em;
+    line-height:0.95;
+    margin-bottom:24px;
+  }
+  .hero h1 .crimson{color:var(--crimson)}
+  .hero h1 .amber{color:var(--amber)}
+  .hero h1 .navy{color:var(--navy)}
+  .hero h1 em{font-style:italic;font-weight:700}
+
+  .hero-sub{
+    font-size:clamp(16px, 1.6vw, 19px);
+    font-weight:500;
+    color:var(--ink-2);
+    max-width:620px;margin:0 auto 40px;
+    line-height:1.45;
+  }
+
+  .hero-actions{
+    display:flex;align-items:center;justify-content:center;gap:14px;
+    flex-wrap:wrap;
+  }
+  .cta-lg{
+    padding:16px 28px;background:#fff;color:#000;border-radius:14px;
+    font-size:16px;font-weight:700;letter-spacing:-0.01em;
+    display:inline-flex;align-items:center;gap:10px;
+    box-shadow:0 10px 36px -10px rgba(255,255,255,0.4);
+  }
+  .cta-lg:hover{transform:translateY(-1px);background:#f5f5f5}
+  .cta-ghost{
+    padding:16px 24px;border-radius:14px;
+    font-size:16px;font-weight:600;color:#fff;
+    border:1px solid var(--line-2);
+    background:rgba(255,255,255,0.03);
+  }
+  .cta-ghost:hover{background:rgba(255,255,255,0.07)}
+
+  .hero-meta{
+    margin-top:40px;
+    display:flex;justify-content:center;align-items:center;gap:24px;
+    font-size:13px;color:var(--ink-3);font-weight:500;
+    flex-wrap:wrap;
+  }
+  .hero-meta .item{display:flex;align-items:center;gap:8px}
+  .hero-meta .dot-sep{width:3px;height:3px;border-radius:50%;background:var(--ink-4)}
+  .hero-meta b{color:#fff;font-weight:600}
+
+  /* ============== STATS STRIP ============== */
+  .stats-strip{
+    padding:60px 36px;
+    background:#0a0a0a;
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+  }
+  .stats-grid{
+    max-width:1100px;margin:0 auto;
+    display:grid;grid-template-columns:repeat(4,1fr);gap:32px;
+  }
+  .stat{text-align:center}
+  .stat .n{
+    font-size:clamp(36px, 4vw, 52px);
+    font-weight:800;letter-spacing:-0.035em;line-height:1;
+    margin-bottom:8px;
+  }
+  .stat:nth-child(1) .n{color:var(--crimson)}
+  .stat:nth-child(2) .n{color:var(--amber)}
+  .stat:nth-child(3) .n{color:var(--navy)}
+  .stat:nth-child(4) .n{color:var(--mint)}
+  .stat .l{font-size:13px;font-weight:500;color:var(--ink-2);letter-spacing:0.02em}
+  @media (max-width:680px){
+    .stats-grid{grid-template-columns:repeat(2,1fr);gap:32px 24px}
+  }
+
+  /* ============== SECTION SCAFFOLD ============== */
+  section{padding:120px 36px;position:relative}
+  .container{max-width:1180px;margin:0 auto}
+  .sect-head{margin-bottom:60px}
+  .sect-eyebrow{
+    display:inline-block;
+    font-size:13px;font-weight:600;letter-spacing:0.18em;
+    color:var(--amber);
+    text-transform:uppercase;
+    margin-bottom:16px;
+  }
+  .sect-h2{
+    font-size:clamp(36px, 5vw, 56px);
+    font-weight:800;letter-spacing:-0.035em;line-height:1.0;
+    margin-bottom:18px;
+    max-width:760px;
+  }
+  .sect-sub{
+    font-size:18px;color:var(--ink-2);font-weight:500;
+    max-width:620px;line-height:1.45;
+  }
+
+  /* ============== FEATURES GRID ============== */
+  .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .feat{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:28px;
+    position:relative;
+    overflow:hidden;
+    transition:border-color .2s ease, transform .2s ease;
+  }
+  .feat:hover{border-color:var(--line-2);transform:translateY(-2px)}
+  .feat-icon{
+    width:48px;height:48px;border-radius:12px;
+    display:grid;place-items:center;
+    font-size:22px;
+    margin-bottom:20px;
+    border:1px solid var(--line);
+  }
+  .feat.crimson .feat-icon{
+    background:linear-gradient(135deg, rgba(255,77,94,0.20), rgba(255,77,94,0.05));
+    border-color:rgba(255,77,94,0.3);
+  }
+  .feat.amber .feat-icon{
+    background:linear-gradient(135deg, rgba(255,181,71,0.20), rgba(255,181,71,0.05));
+    border-color:rgba(255,181,71,0.3);
+  }
+  .feat.navy .feat-icon{
+    background:linear-gradient(135deg, rgba(79,124,255,0.20), rgba(79,124,255,0.05));
+    border-color:rgba(79,124,255,0.3);
+  }
+  .feat.purple .feat-icon{
+    background:linear-gradient(135deg, rgba(181,123,255,0.20), rgba(181,123,255,0.05));
+    border-color:rgba(181,123,255,0.3);
+  }
+  .feat.mint .feat-icon{
+    background:linear-gradient(135deg, rgba(58,227,160,0.20), rgba(58,227,160,0.05));
+    border-color:rgba(58,227,160,0.3);
+  }
+  .feat h3{font-size:20px;font-weight:700;letter-spacing:-0.02em;margin-bottom:10px}
+  .feat p{font-size:14px;color:var(--ink-2);line-height:1.55}
+  .feat-tag{
+    position:absolute;top:20px;right:20px;
+    font-size:10px;font-weight:700;letter-spacing:0.14em;
+    text-transform:uppercase;
+    padding:4px 8px;border-radius:4px;
+    background:var(--mint-soft);
+    color:var(--mint);
+    border:1px solid rgba(58,227,160,0.3);
+  }
+  @media (max-width:900px){.feat-grid{grid-template-columns:1fr 1fr}}
+  @media (max-width:580px){.feat-grid{grid-template-columns:1fr}}
+
+  /* ============== HOW IT WORKS ============== */
+  .how{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:48px;
+    display:grid;grid-template-columns:repeat(3,1fr);gap:48px;
+    position:relative;
+  }
+  .step .step-n{
+    font-size:60px;font-weight:800;letter-spacing:-0.04em;line-height:1;
+    margin-bottom:18px;
+    background:linear-gradient(180deg, #fff 0%, var(--ink-3) 100%);
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;
+  }
+  .step h4{font-size:20px;font-weight:700;letter-spacing:-0.02em;margin-bottom:10px}
+  .step p{color:var(--ink-2);line-height:1.55;font-size:14px}
+  @media (max-width:780px){.how{grid-template-columns:1fr;gap:32px;padding:32px}}
+
+  /* ============== SHOWCASE ============== */
+  .showcase{display:grid;grid-template-columns:1fr 420px;gap:80px;align-items:center}
+  .showcase-text .sect-h2{margin-bottom:24px}
+  .feat-list{margin-top:32px;display:flex;flex-direction:column;gap:14px}
+  .feat-list .item{display:flex;gap:14px;align-items:flex-start}
+  .feat-list .check{
+    width:24px;height:24px;border-radius:50%;
+    background:var(--crimson);
+    display:grid;place-items:center;flex:0 0 auto;
+    box-shadow:0 0 16px -4px rgba(255,77,94,0.5);
+  }
+  .feat-list .item .txt{font-size:15px}
+  .feat-list .item .txt b{display:block;margin-bottom:3px;font-weight:600}
+  .feat-list .item .txt span{color:var(--ink-2);font-size:14px}
+
+  /* phone mockup */
+  .phone-mock{
+    width:380px;height:780px;
+    background:#0a0a0a;border-radius:46px;padding:9px;
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.06),
+      0 40px 100px -20px rgba(0,0,0,0.7),
+      0 0 80px -20px rgba(58,227,160,0.15);
+    position:relative;justify-self:center;
+  }
+  .phone-mock::after{
+    content:"";position:absolute;top:12px;left:50%;transform:translateX(-50%);
+    width:100px;height:26px;background:#000;border-radius:18px;
+  }
+  .phone-screen{
+    width:100%;height:100%;border-radius:38px;overflow:hidden;background:#000;
+    display:flex;flex-direction:column;position:relative;
+  }
+  .phone-screen .mini-hero{position:relative;padding:60px 22px 28px}
+  .phone-screen .mini-hero::before{
+    content:"";position:absolute;inset:0;
+    background:
+      radial-gradient(60% 50% at 0% 100%, rgba(255,77,94,0.3), transparent 60%),
+      radial-gradient(70% 50% at 100% 100%, rgba(255,181,71,0.22), transparent 60%),
+      radial-gradient(120% 80% at 50% 0%, #1a5d52 0%, #0a3530 25%, #061814 50%, #000 80%);
+  }
+  .phone-screen .mini-hero > *{position:relative;z-index:1}
+  .phone-screen .mini-pill{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:5px 11px;
+    background:rgba(58,227,160,0.10);
+    border:1px solid rgba(58,227,160,0.3);
+    border-radius:999px;
+    font-size:11px;font-weight:600;color:var(--mint);
+    margin-bottom:14px;
+  }
+  .phone-screen .mini-pill::before{
+    content:"";width:5px;height:5px;border-radius:50%;background:var(--mint);
+  }
+  .phone-screen .mini-hero h2{
+    font-size:30px;font-weight:700;letter-spacing:-0.03em;line-height:1.0;
+    margin-bottom:6px;
+  }
+  .phone-screen .mini-hero h2 .at{color:var(--amber)}
+  .phone-screen .mini-hero .billing{
+    font-size:12px;color:var(--ink-2);font-weight:500;margin-bottom:14px;
+  }
+  .phone-screen .mini-hero .billing .home{color:var(--navy);font-weight:600}
+  .phone-screen .mini-hero .billing .away{color:var(--crimson);font-weight:600}
+  .phone-screen .mini-hero .meta-line{
+    display:flex;gap:10px;align-items:center;
+    font-size:11px;color:#fff;font-weight:500;
+  }
+  .phone-screen .mini-hero .meta-line .sep{width:2px;height:2px;border-radius:50%;background:rgba(255,255,255,0.5)}
+
+  .mini-section{padding:18px 22px 4px}
+  .mini-section h3{font-size:14px;font-weight:700;letter-spacing:-0.02em;margin-bottom:10px}
+  .mini-card{
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    overflow:hidden;margin-bottom:10px;
+  }
+  .mini-row{
+    display:flex;align-items:center;gap:10px;padding:10px;
+    border-top:1px solid var(--line);position:relative;
+  }
+  .mini-row:first-child{border-top:0}
+  .mini-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px}
+  .mini-row.voted::before{background:var(--crimson)}
+  .mini-row.home::before{background:var(--navy)}
+  .mini-row.away::before{background:var(--crimson)}
+  .mini-row .crest{
+    width:32px;height:32px;border-radius:7px;
+    display:grid;place-items:center;font-size:14px;flex:0 0 auto;
+    background:#181818;border:1px solid var(--line);
+    margin-left:6px;
+  }
+  .mini-row.voted .crest{
+    background:linear-gradient(135deg, var(--crimson), #B82A38);
+    border-color:var(--crimson);
+  }
+  .mini-row.home .crest{
+    background:linear-gradient(135deg, var(--navy), #2A4FB8);
+    color:#fff;font-size:10px;font-weight:800;
+  }
+  .mini-row.away .crest{
+    background:linear-gradient(135deg, var(--crimson), #B82A38);
+    color:#fff;font-size:10px;font-weight:800;
+  }
+  .mini-row .nm{flex:1;font-size:12px;font-weight:600}
+  .mini-row .nm .sub{font-size:10px;color:var(--ink-3);font-weight:500;margin-top:1px}
+  .mini-row .cnt{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+  .mini-row.voted .cnt{color:var(--crimson)}
+  .mini-row.home .cnt{color:var(--navy)}
+  .mini-row.away .cnt{color:var(--crimson)}
+  .mini-row .cnt .l{font-size:8px;font-weight:500;color:var(--ink-3);margin-top:1px}
+  .mini-row.voted .cnt .l{color:var(--crimson)}
+
+  @media (max-width:980px){
+    .showcase{grid-template-columns:1fr;gap:60px}
+    .phone-mock{margin:0 auto}
+  }
+
+  /* ============== EVENT GRID ============== */
+  .event-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .event{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    overflow:hidden;
+    cursor:pointer;
+    transition:transform .2s ease, border-color .2s ease;
+  }
+  .event:hover{transform:translateY(-3px);border-color:var(--line-2)}
+  .event-img{height:200px;position:relative;display:grid;place-items:center}
+  .event-img.e1{background:radial-gradient(circle at 30% 30%, var(--crimson), #2a0e12 70%)}
+  .event-img.e2{background:radial-gradient(circle at 30% 30%, var(--amber), #2a1a06 70%)}
+  .event-img.e3{background:radial-gradient(circle at 30% 30%, var(--navy), #0a1530 70%)}
+  .event-img.e4{background:radial-gradient(circle at 30% 30%, var(--purple), #1a0f30 70%)}
+  .event-img .vs{display:flex;align-items:center;gap:14px}
+  .event-img .badge{
+    width:60px;height:60px;border-radius:50%;
+    background:rgba(0,0,0,0.5);backdrop-filter:blur(10px);
+    display:grid;place-items:center;
+    font-size:14px;font-weight:800;color:#fff;
+    border:2px solid rgba(255,255,255,0.2);
+  }
+  .event-img .at{font-size:14px;font-weight:700;color:rgba(255,255,255,0.8)}
+  .event-img .heart{
+    position:absolute;top:14px;right:14px;
+    width:32px;height:32px;border-radius:50%;
+    background:rgba(0,0,0,0.5);backdrop-filter:blur(10px);
+    display:grid;place-items:center;
+    border:1px solid rgba(255,255,255,0.15);
+  }
+  .event-meta{padding:14px 16px 18px}
+  .event-meta h4{font-size:16px;font-weight:700;letter-spacing:-0.015em;margin-bottom:6px}
+  .event-meta .when{font-size:12px;color:var(--ink-2);font-weight:500}
+  .event-meta .price{font-size:13px;color:var(--amber);font-weight:600;margin-top:8px}
+  @media (max-width:980px){.event-grid{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:480px){.event-grid{grid-template-columns:1fr}}
+
+  /* ============== FINAL CTA ============== */
+  .final-cta{text-align:center;padding:120px 36px;position:relative;overflow:hidden}
+  .final-cta::before{
+    content:"";position:absolute;inset:0;
+    background:
+      radial-gradient(50% 60% at 50% 100%, rgba(255,77,94,0.18) 0%, transparent 60%),
+      radial-gradient(60% 50% at 50% 0%, rgba(58,227,160,0.10) 0%, transparent 60%);
+  }
+  .final-cta > *{position:relative;z-index:1}
+  .final-cta h2{
+    font-size:clamp(40px, 6vw, 72px);
+    font-weight:800;letter-spacing:-0.04em;line-height:1.0;
+    margin-bottom:20px;
+    max-width:780px;margin-left:auto;margin-right:auto;
+  }
+  .final-cta h2 .amber{color:var(--amber)}
+  .final-cta h2 .crimson{color:var(--crimson)}
+  .final-cta p{font-size:18px;color:var(--ink-2);max-width:520px;margin:0 auto 32px}
+
+  /* ============== FOOTER ============== */
+  footer{padding:60px 36px 40px;border-top:1px solid var(--line);background:#050505}
+  .foot-grid{
+    max-width:1180px;margin:0 auto;
+    display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;
+    margin-bottom:48px;
+  }
+  .foot-brand .logo{margin-bottom:14px}
+  .foot-brand p{font-size:14px;color:var(--ink-3);max-width:300px;line-height:1.5}
+  .foot-col h5{
+    font-size:12px;font-weight:700;letter-spacing:0.14em;
+    text-transform:uppercase;color:var(--ink-3);margin-bottom:16px;
+  }
+  .foot-col ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+  .foot-col a{font-size:14px;color:var(--ink-2)}
+  .foot-col a:hover{color:#fff}
+  .foot-bottom{
+    max-width:1180px;margin:0 auto;
+    padding-top:30px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:13px;color:var(--ink-4);
+    flex-wrap:wrap;gap:14px;
+  }
+  @media (max-width:780px){
+    .foot-grid{grid-template-columns:1fr 1fr;gap:32px}
+    .foot-brand{grid-column:1/-1}
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="#" class="logo">
+    <span class="dot"></span>
+    mixr
+  </a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#events">Mixers</a>
+    <a href="#groups">Groups</a>
+  </div>
+  <div class="nav-cta">
+    <button class="btn-ghost">Log in</button>
+    <button class="btn-primary">Get the app</button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <span class="dot"></span>
+      Built for the 5C Claremont Colleges
+    </div>
+    <h1>
+      Your next great<br/>
+      <em class="amber">Saturday night</em><br/>
+      starts <span class="crimson">here.</span>
+    </h1>
+    <p class="hero-sub">
+      Plan group mixers, vote on themes, pick activities, and see who's out tonight — all on one campus-only social planning app for Pomona, CMC, Scripps, Pitzer, and Mudd.
+    </p>
+    <div class="hero-actions">
+      <button class="cta-lg">
+        Download on iOS
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+      <button class="cta-ghost">See how it works</button>
+    </div>
+    <div class="hero-meta">
+      <div class="item"><b>2.4K+</b> students</div>
+      <span class="dot-sep"></span>
+      <div class="item"><b>180+</b> groups</div>
+      <span class="dot-sep"></span>
+      <div class="item">Requires <b>.edu</b> verification</div>
+    </div>
+  </div>
+</section>
+
+<section class="stats-strip">
+  <div class="stats-grid">
+    <div class="stat"><div class="n">340</div><div class="l">Mixers this semester</div></div>
+    <div class="stat"><div class="n">11</div><div class="l">Theme presets</div></div>
+    <div class="stat"><div class="n">5</div><div class="l">Claremont colleges</div></div>
+    <div class="stat"><div class="n">100%</div><div class="l">.edu verified</div></div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="container">
+    <div class="sect-head" style="text-align:center;margin-left:auto;margin-right:auto">
+      <div class="sect-eyebrow">FEATURES</div>
+      <h2 class="sect-h2" style="margin-left:auto;margin-right:auto">Everything you need to host a night.</h2>
+      <p class="sect-sub" style="margin-left:auto;margin-right:auto">From the first DM to the last group photo — Mixr handles the planning so you can just show up.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="feat crimson">
+        <span class="feat-tag">NEW</span>
+        <div class="feat-icon">🗳️</div>
+        <h3>Theme & activity voting</h3>
+        <p>Stop the group-chat debate. Members vote on themes and activities, results lock in by your deadline.</p>
+      </div>
+      <div class="feat amber">
+        <span class="feat-tag">NEW</span>
+        <div class="feat-icon">🎪</div>
+        <h3>Multi-group OpenMixers</h3>
+        <p>Host a party and invite up to 10 other groups. Each one tracked separately so you know who's actually coming.</p>
+      </div>
+      <div class="feat navy">
+        <span class="feat-tag">NEW</span>
+        <div class="feat-icon">📊</div>
+        <h3>Per-group attendance</h3>
+        <p>See exactly who showed up by group — "Men's Soccer: 8, Lit Society: 12, Drama: 5." No more guessing.</p>
+      </div>
+      <div class="feat purple">
+        <div class="feat-icon">💌</div>
+        <h3>Two-group request flow</h3>
+        <p>Send, counter, accept, decline. The whole social-chair-to-social-chair negotiation in one thread.</p>
+      </div>
+      <div class="feat mint">
+        <div class="feat-icon">🎯</div>
+        <h3>Auto-pairings</h3>
+        <p>Generate one-on-one pairings between groups for icebreakers, or override them manually before the night.</p>
+      </div>
+      <div class="feat crimson">
+        <div class="feat-icon">🗺️</div>
+        <h3>Live campus heatmap</h3>
+        <p>See which venues are popping tonight. Drop a pin, find your people.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how" style="padding-top:0">
+  <div class="container">
+    <div class="sect-head" style="text-align:center;margin-left:auto;margin-right:auto">
+      <div class="sect-eyebrow">HOW IT WORKS</div>
+      <h2 class="sect-h2" style="margin-left:auto;margin-right:auto">From DM to dance floor in 3 steps.</h2>
+    </div>
+    <div class="how">
+      <div class="step">
+        <div class="step-n">01</div>
+        <h4>Send a mixer request</h4>
+        <p>Pick a group, propose a date, suggest themes. The other group accepts, counters, or declines.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">02</div>
+        <h4>Everyone votes</h4>
+        <p>Members from both groups RSVP and vote on the theme + activity. Results lock at your deadline.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">03</div>
+        <h4>Show up & rate it</h4>
+        <p>Check in, see your pairings, post stories. After the mixer, both groups rate the night.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:#050505;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="container">
+    <div class="showcase">
+      <div class="showcase-text">
+        <div class="sect-eyebrow">THE BIG VIEW</div>
+        <h2 class="sect-h2">One screen to run the night.</h2>
+        <p class="sect-sub">Every mixer lives at a single URL. Theme votes, activity votes, RSVPs by group, pairings, photos, and ratings — all in one place.</p>
+        <div class="feat-list">
+          <div class="item">
+            <div class="check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="txt"><b>Live voting bars</b><span>Watch the theme race come together in real time.</span></div>
+          </div>
+          <div class="item">
+            <div class="check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="txt"><b>Per-group RSVP counts</b><span>See exactly how many are confirmed from each group.</span></div>
+          </div>
+          <div class="item">
+            <div class="check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="txt"><b>Auto-locks when ready</b><span>Theme and activity votes finalize on your schedule.</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-mock">
+        <div class="phone-screen">
+          <div class="mini-hero">
+            <span class="mini-pill">You're going</span>
+            <h2>Saturday night<br/><span class="at">at Frary.</span></h2>
+            <div class="billing">
+              <span class="home">PO Soccer</span> × <span class="away">Lit Society</span>
+            </div>
+            <div class="meta-line">
+              <span>Sat 5/25</span><span class="sep"></span>
+              <span>9:00 PM</span><span class="sep"></span>
+              <span>Pomona</span>
+            </div>
+          </div>
+          <div class="mini-section">
+            <h3>Pick the theme</h3>
+            <div class="mini-card">
+              <div class="mini-row">
+                <div class="crest">🪩</div>
+                <div class="nm">Disco Inferno<div class="sub">Silver · sequins</div></div>
+                <div class="cnt">10<div class="l">votes</div></div>
+              </div>
+              <div class="mini-row voted">
+                <div class="crest"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div class="nm">Indie Sleaze<div class="sub">2008 vibes</div></div>
+                <div class="cnt">6<div class="l">your vote</div></div>
+              </div>
+              <div class="mini-row">
+                <div class="crest">🌵</div>
+                <div class="nm">Desert Slow<div class="sub">Linen · sand</div></div>
+                <div class="cnt">2<div class="l">votes</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="mini-section">
+            <h3>Who's going</h3>
+            <div class="mini-card">
+              <div class="mini-row home">
+                <div class="crest">PO</div>
+                <div class="nm">PO Soccer<div class="sub">Pomona · Hosting</div></div>
+                <div class="cnt">15<div class="l">going</div></div>
+              </div>
+              <div class="mini-row away">
+                <div class="crest">LS</div>
+                <div class="nm">Lit Society<div class="sub">Scripps · Joining</div></div>
+                <div class="cnt">15<div class="l">going</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="events">
+  <div class="container">
+    <div class="sect-head">
+      <div class="sect-eyebrow">THIS WEEK</div>
+      <h2 class="sect-h2">Popular mixers on campus.</h2>
+      <p class="sect-sub">A sample of what's going down this weekend across the 5Cs.</p>
+    </div>
+    <div class="event-grid">
+      <div class="event">
+        <div class="event-img e1">
+          <div class="heart"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg></div>
+          <div class="vs"><div class="badge">PO</div><span class="at">×</span><div class="badge">LS</div></div>
+        </div>
+        <div class="event-meta">
+          <h4>Soccer × Lit Society</h4>
+          <div class="when">Sat 5/25 · 9 PM · Frary</div>
+          <div class="price">30 going</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-img e2">
+          <div class="heart"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg></div>
+          <div class="vs"><div class="badge">CMC</div><span class="at">×</span><div class="badge">PZ</div></div>
+        </div>
+        <div class="event-meta">
+          <h4>Crew × Climbing Club</h4>
+          <div class="when">Fri 5/24 · 8 PM · The Hub</div>
+          <div class="price">42 going</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-img e3">
+          <div class="heart"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg></div>
+          <div class="vs"><div class="badge">HM</div><span class="at">×</span><div class="badge">SC</div></div>
+        </div>
+        <div class="event-meta">
+          <h4>Math Club × Drama</h4>
+          <div class="when">Sun 5/26 · 7 PM · Mudd</div>
+          <div class="price">28 going</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-img e4">
+          <div class="heart"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg></div>
+          <div class="vs"><div class="badge">PO</div><span class="at">×</span><div class="badge">CMC</div></div>
+        </div>
+        <div class="event-meta">
+          <h4>Indie Night Open</h4>
+          <div class="when">Sat 5/25 · 10 PM · The Motley</div>
+          <div class="price">120 going</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="final-cta">
+  <h2>Saturdays just got <span class="amber">a whole lot</span> <span class="crimson">better.</span></h2>
+  <p>Join 2,400+ Claremont students who are already planning their nights on Mixr.</p>
+  <div class="hero-actions" style="justify-content:center">
+    <button class="cta-lg">
+      Download on iOS
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+    </button>
+    <button class="cta-ghost">Android — coming soon</button>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-grid">
+    <div class="foot-brand">
+      <a href="#" class="logo"><span class="dot"></span>mixr</a>
+      <p>Social planning for the Claremont 5Cs. .edu only. Built by students, for students.</p>
+    </div>
+    <div class="foot-col">
+      <h5>Product</h5>
+      <ul><li><a href="#">Features</a></li><li><a href="#">How it works</a></li><li><a href="#">Groups</a></li><li><a href="#">Mixers</a></li></ul>
+    </div>
+    <div class="foot-col">
+      <h5>Company</h5>
+      <ul><li><a href="#">About</a></li><li><a href="#">Team</a></li><li><a href="#">Careers</a></li><li><a href="#">Contact</a></li></ul>
+    </div>
+    <div class="foot-col">
+      <h5>Legal</h5>
+      <ul><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li><li><a href="#">Community</a></li><li><a href="#">Safety</a></li></ul>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 Mixr · Made in Claremont</span>
+    <span>v0.1 · Beta</span>
+  </div>
+</footer>
+
+</body>
+</html>

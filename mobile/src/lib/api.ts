@@ -123,6 +123,10 @@ export interface GroupJoinRequest {
   user?: Profile;
 }
 
+export type VoteOption = { id: string; name: string; subtitle: string; emoji: string; votes: number };
+export type MixerVotesKindResponse = { options: VoteOption[]; totalVotes: number; myVote: string | null };
+export type MixerVotesResponse = { theme: MixerVotesKindResponse; activity: MixerVotesKindResponse };
+
 const BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL ?? 'http://localhost:3000';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -152,6 +156,8 @@ export const api = {
   activities: {
     list: (category?: string) =>
       request<{ activities: Activity[] }>(`/api/activities${category ? `?category=${category}` : ''}`).then((r) => r.activities),
+    trending: () =>
+      request<{ activities: Activity[] }>(`/api/activities/trending`).then((r) => r.activities),
     get: (id: string) => request<{ activity: Activity }>(`/api/activities/${id}`).then((r) => r.activity),
   },
   profiles: {
@@ -248,6 +254,8 @@ export const api = {
       proposedStart: string;
       proposedLocation: string;
       proposedActivityId?: string;
+      surpriseActivity?: boolean;
+      isOpenMixer?: boolean;
       message?: string;
       createdById: string;
     }) =>
@@ -394,6 +402,56 @@ export const api = {
       request<{ changeRequest: MixerChangeRequest }>(
         `/api/mixers/${mixerId}/change-requests/${crId}/respond`,
         { method: 'POST', body: JSON.stringify(data) }
+      ),
+  },
+  clusters: {
+    setSize: (mixerId: string, size: number, requesterId: string) =>
+      request<{ mixer: Mixer }>(`/api/mixers/${mixerId}/cluster-size`, {
+        method: 'PUT',
+        body: JSON.stringify({ size, requesterId }),
+      }).then((r) => r.mixer),
+    generate: (mixerId: string, requesterId: string) =>
+      request<{ clusters: Array<{ clusterId: string; userIds: string[] }> }>(
+        `/api/mixers/${mixerId}/generate-clusters`,
+        { method: 'POST', body: JSON.stringify({ requesterId }) }
+      ).then((r) => r.clusters),
+    myCluster: (mixerId: string, userId: string) =>
+      request<{
+        cluster: {
+          id: string;
+          name: string | null;
+          members: { userId: string; groupId: string; profile: { id: string; name: string; avatarUrl?: string; collegeId?: string } | null }[];
+        } | null;
+      }>(`/api/mixers/${mixerId}/my-cluster?userId=${encodeURIComponent(userId)}`)
+        .then((r) => r.cluster),
+    list: (mixerId: string) =>
+      request<{
+        clusters: {
+          id: string;
+          name: string | null;
+          members: { id: string; userId: string; groupId: string; profile: { id: string; name: string; avatarUrl?: string } | null }[];
+        }[];
+      }>(`/api/mixers/${mixerId}/clusters`).then((r) => r.clusters),
+    moveMember: (mixerId: string, userId: string, targetClusterId: string, requesterId: string) =>
+      request<{ ok: boolean }>(`/api/mixers/${mixerId}/clusters/move`, {
+        method: 'PUT',
+        body: JSON.stringify({ userId, targetClusterId, requesterId }),
+      }),
+  },
+  mixerVotes: {
+    get: (mixerId: string, userId?: string) =>
+      request<MixerVotesResponse>(
+        `/api/mixer-votes/${mixerId}${userId ? `?userId=${encodeURIComponent(userId)}` : ''}`
+      ),
+    cast: (mixerId: string, payload: { userId: string; kind: 'theme' | 'activity'; optionId: string }) =>
+      request<{ vote: { id: string; mixerId: string; userId: string; kind: string; optionId: string } }>(
+        `/api/mixer-votes/${mixerId}`,
+        { method: 'POST', body: JSON.stringify(payload) }
+      ),
+    remove: (mixerId: string, userId: string, kind: 'theme' | 'activity') =>
+      request<{ ok: true }>(
+        `/api/mixer-votes/${mixerId}?userId=${encodeURIComponent(userId)}&kind=${kind}`,
+        { method: 'DELETE' }
       ),
   },
   safety: {
@@ -607,6 +665,7 @@ export const api = {
       ratedGroupId: string;
       rating: number;
       comment?: string;
+      tags?: string[];
     }) =>
       request<{ rating: MixerRating }>('/api/ratings/submit', {
         method: 'POST',

@@ -19,7 +19,7 @@ interface GlowButtonProps {
 export function GlowButton({
   children,
   onPress,
-  glowColor = '#A855F7',
+  glowColor = '#3AE3A0',
   style,
 }: GlowButtonProps) {
   const scale = useSharedValue(1);

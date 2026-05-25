@@ -48,7 +48,7 @@ import { InviteMembersModal } from '@/components/invites/InviteMembersModal';
 
 const CATEGORY_COLORS: Record<GroupCategory, string> = {
   sports: '#FF6B6B',
-  social: '#A78BFA',
+  social: '#4F7CFF',
   clubs:  '#4ECDC4',
   other:  '#94A3B8',
 };

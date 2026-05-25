@@ -49,7 +49,7 @@ export function GelCard({
       }
     : glow
     ? {
-        shadowColor: '#A855F7',
+        shadowColor: '#3AE3A0',
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.40,
         shadowRadius: 24,
@@ -110,7 +110,7 @@ export function GelCard({
               backgroundColor: 'rgba(168,85,247,0.25)',
               transform: [{ scaleX: 1.05 }, { scaleY: 1.12 }],
               // blur the glow layer by making it a large soft blob
-              shadowColor: '#A855F7',
+              shadowColor: '#3AE3A0',
               shadowOffset: { width: 0, height: 0 },
               shadowOpacity: 1,
               shadowRadius: 32,

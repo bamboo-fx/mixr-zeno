@@ -28,7 +28,7 @@ export function StoryBubble({
     <View style={[styles.container, { width: size, height: size }, style]}>
       {!seen && (
         <LinearGradient
-          colors={['#EC4899', '#A855F7', '#6366F1'] as const}
+          colors={['#EC4899', '#3AE3A0', '#6366F1'] as const}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={[styles.ring, { width: size, height: size, borderRadius: size / 2 }]}
@@ -77,7 +77,7 @@ export function AddStoryButton({ onPress, size = 64, style }: AddStoryButtonProp
   return (
     <Pressable onPress={onPress} style={[styles.addWrapper, { width: size, height: size }, style]}>
       <LinearGradient
-        colors={['#EC4899', '#A855F7', '#6366F1'] as const}
+        colors={['#EC4899', '#3AE3A0', '#6366F1'] as const}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[styles.addRing, { width: size, height: size, borderRadius: size / 2 }]}
@@ -87,7 +87,7 @@ export function AddStoryButton({ onPress, size = 64, style }: AddStoryButtonProp
           colors={['rgba(168, 85, 247, 0.25)', 'rgba(99, 102, 241, 0.15)']}
           style={StyleSheet.absoluteFill}
         />
-        <Plus size={size * 0.30} color="#C084FC" strokeWidth={2.5} />
+        <Plus size={size * 0.30} color="#7AECC4" strokeWidth={2.5} />
       </View>
     </Pressable>
   );

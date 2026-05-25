@@ -6,6 +6,8 @@ import {
   Pressable,
   RefreshControl,
   TextInput,
+  Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/lib/state/auth-store';
@@ -36,11 +38,13 @@ import { AnimatedListItem } from '@/components/AnimatedListItem';
 import { DS } from '@/lib/ds';
 import { Haptics } from '@/lib/haptics';
 import { GelBackground, GelCard } from '@/components/gel';
+import { colors as C, fonts as F } from '@/lib/theme';
+import { HeaderBackdrop } from '@/components/HeaderBackdrop';
 
 const CATEGORY_COLORS: Record<string, [string, string]> = {
   sports: ['#FF6B6B', '#FF8E53'],
   social: ['#00D4AA', '#0096FF'],
-  clubs: ['#A78BFA', '#7C3AED'],
+  clubs: ['#4F7CFF', '#28C988'],
   other: ['#9CA3AF', '#6B7280'],
 };
 
@@ -207,25 +211,22 @@ function EmptyGroupsState({
       {!hasFilters && (
         <Pressable
           onPress={() => { Haptics.medium(); onCreateGroup(); }}
-          style={{ borderRadius: DS.Radius.md, overflow: 'hidden' }}
+          style={({ pressed }) => ({
+            paddingHorizontal: 28,
+            paddingVertical: 14,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+            borderRadius: DS.Radius.md,
+            borderWidth: 1.5,
+            borderColor: '#FFFFFF',
+            backgroundColor: pressed ? 'rgba(255,255,255,0.08)' : 'transparent',
+          })}
         >
-          <LinearGradient
-            colors={['#A855F7', '#7C3AED']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{
-              paddingHorizontal: 28,
-              paddingVertical: 14,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            <Plus size={16} color="#fff" />
-            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>
-              Create Group
-            </Text>
-          </LinearGradient>
+          <Plus size={16} color="#fff" />
+          <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>
+            Create Group
+          </Text>
         </Pressable>
       )}
     </View>
@@ -248,6 +249,33 @@ export default function GroupsScreen() {
   const [sortBy, setSortBy] = useState<SortOption>('trending');
   const [showSortMenu, setShowSortMenu] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [joinCodeModal, setJoinCodeModal] = useState<boolean>(false);
+  const [joinCodeInput, setJoinCodeInput] = useState<string>('');
+  const [joinCodeError, setJoinCodeError] = useState<string | null>(null);
+  const [joinCodePending, setJoinCodePending] = useState<boolean>(false);
+
+  const handleJoinByCode = async () => {
+    if (!profile?.id) return;
+    const code = joinCodeInput.trim().toUpperCase();
+    if (code.length < 4) {
+      setJoinCodeError('Enter a valid code');
+      return;
+    }
+    setJoinCodePending(true);
+    setJoinCodeError(null);
+    try {
+      const { group } = await api.groups.joinByCode(code, profile.id);
+      Haptics.success();
+      setJoinCodeModal(false);
+      setJoinCodeInput('');
+      router.push(`/group/${group.id}`);
+    } catch (e: unknown) {
+      setJoinCodeError(e instanceof Error ? e.message : 'Invalid code');
+      Haptics.error();
+    } finally {
+      setJoinCodePending(false);
+    }
+  };
 
   const { data: groups = [], isLoading, refetch } = useQuery({
     queryKey: ['groups', isClaremont ? '5c' : profile?.collegeId, collegeIdsToFetch, collegeIdToFetch],
@@ -311,7 +339,8 @@ export default function GroupsScreen() {
   const hasFilters = query.trim() !== '' || selectedCategory !== 'all';
 
   return (
-    <GelBackground>
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <HeaderBackdrop height={260} variant="navy" />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
@@ -319,7 +348,7 @@ export default function GroupsScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tintColor={DS.Color.gelPurple}
+            tintColor={C.ink}
             progressViewOffset={38}
           />
         }
@@ -333,7 +362,7 @@ export default function GroupsScreen() {
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text style={{ fontSize: 34, fontWeight: '900', color: DS.Color.text, letterSpacing: -1 }}>
+            <Text style={{ fontSize: 38, fontFamily: F.bold, color: C.ink, letterSpacing: -1.4 }}>
               Groups
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -489,38 +518,49 @@ export default function GroupsScreen() {
             </View>
           )}
 
+          {/* Create / Join row */}
+          <View style={{ flexDirection: 'row', gap: 8, marginBottom: DS.Spacing.md }}>
+            <Pressable
+              onPress={() => { Haptics.tap(); setJoinCodeModal(true); }}
+              style={({ pressed }) => ({
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                height: 46,
+                borderRadius: DS.Radius.md,
+                borderWidth: 1.5,
+                borderColor: '#FFFFFF',
+                backgroundColor: pressed ? 'rgba(255,255,255,0.06)' : 'transparent',
+              })}
+            >
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFFFFF', letterSpacing: -0.1 }}>
+                🔑 Join with code
+              </Text>
+            </Pressable>
+          </View>
+
           {/* Create Group Button */}
           <Pressable
             onPress={() => { Haptics.tap(); router.push('/create-group'); }}
             style={({ pressed }) => ({
               marginBottom: DS.Spacing.md,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 7,
+              height: 46,
               borderRadius: DS.Radius.md,
-              overflow: 'hidden',
-              opacity: pressed ? 0.82 : 1,
+              borderWidth: 1.5,
+              borderColor: '#FFFFFF',
+              backgroundColor: pressed ? 'rgba(255,255,255,0.06)' : 'transparent',
             })}
           >
-            <LinearGradient
-              colors={['rgba(168,85,247,0.22)', 'rgba(124,58,237,0.14)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 7,
-                height: 46,
-                borderRadius: DS.Radius.md,
-                borderWidth: DS.Stroke.hairline,
-                borderColor: DS.Color.gelPurple,
-              }}
-            >
-              <Plus size={15} color={DS.Color.gelPurple} strokeWidth={2.5} />
-              <Text
-                style={{ fontSize: 14, fontWeight: '700', color: DS.Color.text, letterSpacing: -0.1 }}
-              >
-                Create Group
-              </Text>
-            </LinearGradient>
+            <Plus size={15} color="#FFFFFF" strokeWidth={2.5} />
+            <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFFFFF', letterSpacing: -0.1 }}>
+              Create Group
+            </Text>
           </Pressable>
 
           {/* Search Bar */}
@@ -584,14 +624,14 @@ export default function GroupsScreen() {
                     paddingHorizontal: 16,
                     paddingVertical: 8,
                     borderRadius: 100,
-                    backgroundColor: isSelected ? 'rgba(168,85,247,0.22)' : DS.Color.panel,
-                    borderWidth: DS.Stroke.hairline,
-                    borderColor: isSelected ? DS.Color.gelPurple : DS.Color.stroke,
+                    backgroundColor: isSelected ? '#FFFFFF' : DS.Color.panel,
+                    borderWidth: 1,
+                    borderColor: isSelected ? '#FFFFFF' : DS.Color.stroke,
                   }}
                 >
                   <Text
                     style={{
-                      color: isSelected ? DS.Color.gelPurple : DS.Color.text2,
+                      color: isSelected ? '#000000' : DS.Color.text2,
                       fontSize: 13,
                       fontWeight: '600',
                     }}
@@ -770,6 +810,85 @@ export default function GroupsScreen() {
           )}
         </View>
       </ScrollView>
-    </GelBackground>
+
+      {/* Join by code modal */}
+      <Modal
+        visible={joinCodeModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setJoinCodeModal(false)}
+      >
+        <Pressable
+          onPress={() => setJoinCodeModal(false)}
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: 380,
+              backgroundColor: '#111',
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.10)',
+              padding: 22,
+            }}
+          >
+            <Text style={{ color: '#FFF', fontSize: 22, fontWeight: '700', letterSpacing: -0.5, marginBottom: 6 }}>
+              Join private group
+            </Text>
+            <Text style={{ color: '#888', fontSize: 13, marginBottom: 18 }}>
+              Enter the 6-letter invite code shared by the social chair.
+            </Text>
+            <TextInput
+              value={joinCodeInput}
+              onChangeText={(t) => { setJoinCodeInput(t.toUpperCase()); setJoinCodeError(null); }}
+              placeholder="ABC123"
+              placeholderTextColor="#555"
+              autoCapitalize="characters"
+              autoCorrect={false}
+              maxLength={8}
+              style={{
+                backgroundColor: '#181818',
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.14)',
+                borderRadius: 12,
+                color: '#FFF',
+                fontSize: 22,
+                fontWeight: '700',
+                letterSpacing: 4,
+                textAlign: 'center',
+                paddingVertical: 14,
+                marginBottom: 12,
+              }}
+            />
+            {joinCodeError && (
+              <Text style={{ color: '#FF4D5E', fontSize: 13, fontWeight: '600', textAlign: 'center', marginBottom: 12 }}>
+                {joinCodeError}
+              </Text>
+            )}
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <Pressable
+                onPress={() => setJoinCodeModal(false)}
+                style={{ flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' }}
+              >
+                <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 14 }}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={handleJoinByCode}
+                disabled={joinCodePending || joinCodeInput.trim().length < 4}
+                style={{ flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: 12, backgroundColor: '#FFFFFF', opacity: joinCodePending || joinCodeInput.trim().length < 4 ? 0.5 : 1 }}
+              >
+                {joinCodePending ? (
+                  <ActivityIndicator size="small" color="#000" />
+                ) : (
+                  <Text style={{ color: '#000', fontWeight: '700', fontSize: 14 }}>Join</Text>
+                )}
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </View>
   );
 }

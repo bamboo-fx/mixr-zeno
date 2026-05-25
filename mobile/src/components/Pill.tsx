@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { DS } from '@/lib/ds';
+import { colors as C, fonts as F } from '@/lib/theme';
 
 interface PillProps {
   text: string;
@@ -16,17 +16,15 @@ export function Pill({ text }: PillProps) {
 
 const styles = StyleSheet.create({
   pill: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: DS.Color.panel2,
-    borderRadius: 100,
-    borderWidth: DS.Stroke.hairline,
-    borderColor: DS.Color.stroke,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    backgroundColor: C.surface2,
+    borderRadius: 999,
   },
   pillText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: DS.Color.text2,
-    letterSpacing: 0.3,
+    fontSize: 10,
+    fontFamily: F.bold,
+    color: C.ink2,
+    letterSpacing: 0.4,
   },
 });

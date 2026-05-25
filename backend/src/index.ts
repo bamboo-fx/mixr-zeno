@@ -11,6 +11,8 @@ import { activitiesRouter } from "./routes/activities";
 import { groupsRouter } from "./routes/groups";
 import { mixerRequestsRouter } from "./routes/mixer-requests";
 import { mixersRouter } from "./routes/mixers";
+import { mixerVotesRouter } from "./routes/mixer-votes";
+import { clustersRouter } from "./routes/clusters";
 import { safetyRouter } from "./routes/safety";
 import { storiesRouter } from "./routes/stories";
 import { reactionsRouter } from "./routes/reactions";
@@ -52,6 +54,10 @@ const app = new Hono<{
 const allowed = [
   /^http:\/\/localhost(:\d+)?$/,
   /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+  // LAN testing: allow private RFC1918 ranges on any port (dev only)
+  /^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/,
+  /^http:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/,
+  /^http:\/\/172\.(1[6-9]|2\d|3[01])\.\d+\.\d+(:\d+)?$/,
 ];
 
 app.use(
@@ -116,6 +122,9 @@ app.route("/api/activities", activitiesRouter);
 app.route("/api/groups", groupsRouter);
 app.route("/api/mixer-requests", mixerRequestsRouter);
 app.route("/api/mixers", mixersRouter);
+app.route("/api/mixer-votes", mixerVotesRouter);
+// Cluster endpoints are scoped under /api/mixers so URLs read /api/mixers/:id/cluster-size etc.
+app.route("/api/mixers", clustersRouter);
 app.route("/api/safety", safetyRouter);
 app.route("/api/stories", storiesRouter);
 app.route("/api/reactions", reactionsRouter);
@@ -494,6 +503,56 @@ async function autoStartMixers() {
 // Run auto-start check every 5 minutes
 autoStartMixers();
 setInterval(autoStartMixers, 5 * 60 * 1000);
+
+// Close mixer chats 48 hours after the mixer completed.
+async function closeStaleMixerChats() {
+  try {
+    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    // Mixer-type rooms whose linked Mixer.completedAt is older than the cutoff.
+    const rooms = await db.chatRoom.findMany({
+      where: { type: 'mixer', isOpen: true, mixerId: { not: null } },
+      select: { id: true, mixerId: true },
+    });
+    let closed = 0;
+    for (const r of rooms) {
+      if (!r.mixerId) continue;
+      const mixer = await db.mixer.findUnique({
+        where: { id: r.mixerId },
+        select: { completedAt: true },
+      });
+      if (mixer?.completedAt && mixer.completedAt < cutoff) {
+        await db.chatRoom.update({ where: { id: r.id }, data: { isOpen: false } });
+        closed++;
+      }
+    }
+    if (closed > 0) console.log(`[ChatCleanup] Closed ${closed} stale mixer chat(s)`);
+  } catch (err) {
+    console.error('[ChatCleanup] Failed:', err);
+  }
+}
+closeStaleMixerChats();
+setInterval(closeStaleMixerChats, 15 * 60 * 1000);
+
+// Lock pairings once a mixer is within 1 hour of starting.
+async function autoLockPairings() {
+  try {
+    const now = new Date();
+    const inAnHour = new Date(now.getTime() + 60 * 60 * 1000);
+    const result = await db.mixer.updateMany({
+      where: {
+        status: { in: ['upcoming', 'locked'] },
+        pairingLocked: false,
+        scheduledStart: { lte: inAnHour },
+      },
+      data: { pairingLocked: true },
+    });
+    if (result.count > 0) console.log(`[PairingLock] Locked pairings for ${result.count} mixer(s)`);
+  } catch (err) {
+    console.error('[PairingLock] Failed:', err);
+  }
+}
+autoLockPairings();
+setInterval(autoLockPairings, 5 * 60 * 1000);
 
 // Compute rankings daily at 3:00 AM PST (UTC-8 standard, UTC-7 daylight)
 // 3:00 AM PST = 11:00 AM UTC (standard) / 10:00 AM UTC (daylight)

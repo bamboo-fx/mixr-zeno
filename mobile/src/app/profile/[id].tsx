@@ -224,7 +224,7 @@ export default function ViewProfileScreen() {
             <View style={styles.avatarNeonRing}>
               {/* Main purple ring gradient */}
               <LinearGradient
-                colors={['#E8D4FF', '#C084FC', '#A855F7', '#7C3AED', '#9B6DD8']}
+                colors={['#E8D4FF', '#7AECC4', '#3AE3A0', '#28C988', '#9B6DD8']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.avatarRingGradient}
@@ -295,7 +295,7 @@ export default function ViewProfileScreen() {
               ]}
             >
               <LinearGradient
-                colors={['#A855F7', '#7C3AED']}
+                colors={['#3AE3A0', '#28C988']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.messageButtonGradient}
@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
     top: -7,
     left: -7,
     backgroundColor: 'transparent',
-    shadowColor: '#A855F7',
+    shadowColor: '#3AE3A0',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.7,
     shadowRadius: 20,
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
     borderRadius: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#C084FC',
+    shadowColor: '#7AECC4',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 12,

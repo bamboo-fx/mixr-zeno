@@ -16,6 +16,8 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/state/auth-store';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GelBackground, GelCard, SegmentedControl } from '@/components/gel';
+import { HeaderBackdrop } from '@/components/HeaderBackdrop';
+import { MixerModeBanner } from '@/components/mixer/MixerModeBanner';
 import { DS } from '@/lib/ds';
 import { Haptics } from '@/lib/haptics';
 import {
@@ -71,13 +73,11 @@ function truncate(text: string, max: number): string {
   return text.length > max ? text.slice(0, max) + '…' : text;
 }
 
-// Gradient palettes for fallback avatars, cycled by index
+// Avatar gradients — only crimson, navy, and mint per the design system.
 const AVATAR_GRADIENTS: [string, string][] = [
-  ['#7C3AED', '#A855F7'],
-  ['#2563EB', '#7C3AED'],
-  ['#D946EF', '#A855F7'],
-  ['#0891B2', '#7C3AED'],
-  ['#16A34A', '#2563EB'],
+  ['#FF4D5E', '#B82A38'],
+  ['#4F7CFF', '#1E3FB8'],
+  ['#3AE3A0', '#28C988'],
 ];
 
 function getAvatarGradient(seed: string): [string, string] {
@@ -85,7 +85,7 @@ function getAvatarGradient(seed: string): [string, string] {
   for (let i = 0; i < seed.length; i++) {
     hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
   }
-  return AVATAR_GRADIENTS[hash % AVATAR_GRADIENTS.length] ?? ['#7C3AED', '#A855F7'];
+  return AVATAR_GRADIENTS[hash % AVATAR_GRADIENTS.length] ?? ['#4F7CFF', '#1E3FB8'];
 }
 
 // ─── Chat Room Row ────────────────────────────────────────────────────────────
@@ -426,7 +426,7 @@ function RequestsTab({ refreshing, onRefresh }: RequestsTabProps) {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={DS.Color.gelPurple} />
+        <ActivityIndicator size="large" color={"#FFFFFF"} />
       </View>
     );
   }
@@ -442,17 +442,17 @@ function RequestsTab({ refreshing, onRefresh }: RequestsTabProps) {
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          tintColor={DS.Color.gelPurple}
+          tintColor={"#FFFFFF"}
         />
       }
     >
       {isEmpty ? (
         <Animated.View entering={FadeIn.duration(400)} style={styles.emptyState}>
           <LinearGradient
-            colors={['rgba(168,85,247,0.15)', 'rgba(168,85,247,0.05)']}
+            colors={['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.05)']}
             style={styles.emptyIconCircle}
           >
-            <BellOff size={32} color={DS.Color.gelPurple} />
+            <BellOff size={32} color={"#FFFFFF"} />
           </LinearGradient>
           <Text style={styles.emptyTitle}>All caught up</Text>
           <Text style={styles.emptySubtitle}>
@@ -477,7 +477,7 @@ function RequestsTab({ refreshing, onRefresh }: RequestsTabProps) {
           {messageRequests.length > 0 && (
             <View style={styles.requestsSection}>
               <View style={styles.sectionHeader}>
-                <Mail size={14} color={DS.Color.gelPurple} />
+                <Mail size={14} color={"#FFFFFF"} />
                 <Text style={styles.sectionTitle}>Message Requests</Text>
                 <View style={styles.countBadge}>
                   <Text style={styles.countBadgeText}>{messageRequests.length}</Text>
@@ -558,7 +558,7 @@ function RequestsTab({ refreshing, onRefresh }: RequestsTabProps) {
           {pendingInvites.length > 0 && (
             <View style={styles.requestsSection}>
               <View style={styles.sectionHeader}>
-                <UserPlus size={14} color={DS.Color.gelPurple} />
+                <UserPlus size={14} color={"#FFFFFF"} />
                 <Text style={styles.sectionTitle}>Group Invites</Text>
                 <View style={styles.countBadge}>
                   <Text style={styles.countBadgeText}>{pendingInvites.length}</Text>
@@ -663,7 +663,7 @@ function RequestsTab({ refreshing, onRefresh }: RequestsTabProps) {
                             ]}
                           >
                             {notification.type === 'group_invite' && (
-                              <UserPlus size={15} color={DS.Color.gelPurple} />
+                              <UserPlus size={15} color={"#FFFFFF"} />
                             )}
                             {notification.type === 'invite_accepted' && (
                               <CheckCircle2 size={15} color={DS.Color.success} />
@@ -672,10 +672,10 @@ function RequestsTab({ refreshing, onRefresh }: RequestsTabProps) {
                               <XCircle size={15} color={DS.Color.error} />
                             )}
                             {notification.type === 'join_request' && (
-                              <Users size={15} color={DS.Color.gelPurple} />
+                              <Users size={15} color={"#FFFFFF"} />
                             )}
                             {notification.type === 'message_request' && (
-                              <Mail size={15} color={DS.Color.gelPurple} />
+                              <Mail size={15} color={"#FFFFFF"} />
                             )}
                             {notification.type === 'message_request_accepted' && (
                               <CheckCircle2 size={15} color={DS.Color.success} />
@@ -787,7 +787,7 @@ function MessagesTab({ refreshing, onRefresh }: MessagesTabProps) {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={DS.Color.gelPurple} />
+        <ActivityIndicator size="large" color={"#FFFFFF"} />
       </View>
     );
   }
@@ -800,16 +800,16 @@ function MessagesTab({ refreshing, onRefresh }: MessagesTabProps) {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={DS.Color.gelPurple}
+            tintColor={"#FFFFFF"}
           />
         }
       >
         <Animated.View entering={FadeIn.duration(400)} style={styles.emptyState}>
           <LinearGradient
-            colors={['rgba(168,85,247,0.15)', 'rgba(168,85,247,0.05)']}
+            colors={['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.05)']}
             style={styles.emptyIconCircle}
           >
-            <MessageCircle size={32} color={DS.Color.gelPurple} />
+            <MessageCircle size={32} color={"#FFFFFF"} />
           </LinearGradient>
           <Text style={styles.emptyTitle}>No chats yet</Text>
           <Text style={styles.emptySubtitle}>
@@ -843,7 +843,7 @@ function MessagesTab({ refreshing, onRefresh }: MessagesTabProps) {
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          tintColor={DS.Color.gelPurple}
+          tintColor={"#FFFFFF"}
         />
       }
       showsVerticalScrollIndicator={false}
@@ -882,7 +882,8 @@ export default function NotificationsScreen() {
   };
 
   return (
-    <GelBackground>
+    <View style={{ flex: 1, backgroundColor: '#000' }}>
+      <HeaderBackdrop height={220} variant="emerald" />
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <Pressable
@@ -896,6 +897,9 @@ export default function NotificationsScreen() {
         </Pressable>
         <Text style={styles.headerTitle}>Inbox</Text>
       </View>
+
+      {/* Pinned active-mixer banner */}
+      <MixerModeBanner />
 
       {/* Segmented Control */}
       <View style={styles.tabRow}>
@@ -915,7 +919,7 @@ export default function NotificationsScreen() {
           <RequestsTab refreshing={refreshing} onRefresh={handleRefresh} />
         )}
       </View>
-    </GelBackground>
+    </View>
   );
 }
 
@@ -978,11 +982,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   roomRowPressed: {
-    backgroundColor: 'rgba(168,85,247,0.07)',
+    backgroundColor: 'rgba(255,255,255,0.07)',
   },
   separator: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(168,85,247,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.12)',
     marginLeft: DS.Spacing.lg + 56 + 14, // indent past avatar
   },
 
@@ -1015,7 +1019,7 @@ const styles = StyleSheet.create({
     width: 13,
     height: 13,
     borderRadius: 7,
-    backgroundColor: DS.Color.gelPurple,
+    backgroundColor: "#FFFFFF",
     borderWidth: 2,
     borderColor: '#08050d',
   },
@@ -1062,7 +1066,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   unreadCountBubble: {
-    backgroundColor: DS.Color.gelPurple,
+    backgroundColor: "#FFFFFF",
     borderRadius: 10,
     paddingHorizontal: 7,
     paddingVertical: 2,
@@ -1079,23 +1083,23 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   mixerBadge: {
-    backgroundColor: 'rgba(168,85,247,0.18)',
+    backgroundColor: 'rgba(255,255,255,0.18)',
     borderRadius: 6,
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderWidth: 1,
-    borderColor: 'rgba(168,85,247,0.30)',
+    borderColor: 'rgba(255,255,255,0.30)',
   },
   mixerBadgeText: {
     fontSize: 10,
     fontWeight: '600',
-    color: DS.Color.gelPurple,
+    color: "#FFFFFF",
     letterSpacing: 0.2,
   },
   unreadBadgeInline: {
     flexDirection: 'row',
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(168,85,247,0.15)',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -1158,12 +1162,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 100,
-    backgroundColor: 'rgba(168,85,247,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(168,85,247,0.25)',
+    borderColor: 'rgba(255,255,255,0.25)',
   },
   markAllText: {
-    color: DS.Color.gelPurple,
+    color: "#FFFFFF",
     fontSize: 12,
     fontWeight: '600',
   },
@@ -1182,7 +1186,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   countBadge: {
-    backgroundColor: DS.Color.gelPurple,
+    backgroundColor: "#FFFFFF",
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 100,
@@ -1236,7 +1240,7 @@ const styles = StyleSheet.create({
     color: DS.Color.text2,
   },
   groupName: {
-    color: DS.Color.gelPurple,
+    color: "#FFFFFF",
     fontWeight: '700',
   },
   inviteTime: {
@@ -1279,7 +1283,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   unreadCard: {
-    borderColor: 'rgba(168,85,247,0.40)',
+    borderColor: 'rgba(255,255,255,0.40)',
     borderWidth: 1,
   },
   notificationContent: {
@@ -1297,7 +1301,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   iconInvite: {
-    backgroundColor: 'rgba(168,85,247,0.18)',
+    backgroundColor: 'rgba(255,255,255,0.18)',
   },
   iconAccepted: {
     backgroundColor: 'rgba(34,197,94,0.15)',
@@ -1328,7 +1332,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: DS.Color.gelPurple,
+    backgroundColor: "#FFFFFF",
     marginTop: 4,
     flexShrink: 0,
   },

@@ -102,14 +102,18 @@ export function StoryCameraModal({
       });
 
       if (photo) {
-        setCapturedPhoto({
+        const captured = {
           uri: photo.uri,
           width: photo.width,
           height: photo.height,
-        });
+        };
+        setCapturedPhoto(captured);
 
+        // Per spec: stories auto-post on capture. No edit/caption step.
+        // If multiple mixers, ask which one — that's a routing choice, not editing.
         if (postableMixers.length === 1) {
-          setViewState('preview');
+          // Defer one tick so capturedPhoto state is set before uploadStory reads it.
+          setTimeout(() => uploadStory(), 0);
         } else {
           setViewState('select_mixer');
         }
@@ -185,8 +189,9 @@ export function StoryCameraModal({
   const selectMixerAndContinue = useCallback((mixer: PostableMixer) => {
     Haptics.tap();
     setSelectedMixer(mixer);
-    setViewState('preview');
-  }, []);
+    // Auto-upload after mixer is chosen — no edit/preview step.
+    setTimeout(() => uploadStory(), 0);
+  }, [uploadStory]);
 
   const shutterAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: shutterScale.value }],

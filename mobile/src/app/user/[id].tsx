@@ -160,7 +160,7 @@ export default function UserProfileScreen() {
         <View style={styles.avatarWrapper}>
           <View style={styles.avatarNeonRing}>
             <LinearGradient
-              colors={['#E8D4FF', '#C084FC', '#A855F7', '#7C3AED', '#9B6DD8']}
+              colors={['#E8D4FF', '#7AECC4', '#3AE3A0', '#28C988', '#9B6DD8']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.avatarRingGradient}
@@ -256,7 +256,7 @@ export default function UserProfileScreen() {
                             />
                           ) : (
                             <LinearGradient
-                              colors={['#A855F7', '#8B5CF6']}
+                              colors={['#3AE3A0', '#4F7CFF']}
                               style={styles.groupImagePlaceholder}
                             >
                               <Users size={20} color="#FFFFFF" />
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
     borderRadius: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#C084FC',
+    shadowColor: '#7AECC4',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 12,

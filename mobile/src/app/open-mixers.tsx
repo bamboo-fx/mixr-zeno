@@ -88,7 +88,7 @@ function OpenMixerCard({
                   width: 8,
                   height: 8,
                   borderRadius: 4,
-                  backgroundColor: '#A855F7',
+                  backgroundColor: '#3AE3A0',
                 }}
               />
             )}
@@ -289,7 +289,7 @@ export default function OpenMixersScreen() {
               }}
             >
               <LinearGradient
-                colors={['#A855F7', '#7C3AED']}
+                colors={['#3AE3A0', '#28C988']}
                 style={{
                   width: 38,
                   height: 38,
@@ -393,7 +393,7 @@ export default function OpenMixersScreen() {
                 style={{ borderRadius: DS.Radius.md, overflow: 'hidden' }}
               >
                 <LinearGradient
-                  colors={['#A855F7', '#7C3AED']}
+                  colors={['#3AE3A0', '#28C988']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={{

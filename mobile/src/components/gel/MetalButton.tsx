@@ -34,9 +34,9 @@ const colorVariants: Record<
     buttonColors: ['#B9B9B9', '#969696'],
   },
   primary: {
-    outerColors: ['#2D0A4E', '#A855F7'],
-    innerColors: ['#E9D5FF', '#581C87', '#D8B4FE'],
-    buttonColors: ['#C084FC', '#7C3AED'],
+    outerColors: ['#2D0A4E', '#3AE3A0'],
+    innerColors: ['#E9D5FF', '#581C87', '#FFE5BC'],
+    buttonColors: ['#7AECC4', '#28C988'],
   },
   success: {
     outerColors: ['#005A43', '#7CCB9B'],

@@ -23,16 +23,25 @@ import { X, Star, Send } from 'lucide-react-native';
 import { DS } from '@/lib/ds';
 import { Haptics } from '@/lib/haptics';
 
+export type RatingTag = 'fun' | 'organized' | 'good-energy' | 'mix-again';
+
 interface MixerRatingModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (rating: number, comment?: string) => Promise<void>;
+  onSubmit: (rating: number, comment?: string, tags?: RatingTag[]) => Promise<void>;
   groupName: string;
   isSubmitting?: boolean;
 }
 
+const TAG_OPTIONS: { key: RatingTag; label: string }[] = [
+  { key: 'fun',          label: 'Fun' },
+  { key: 'organized',    label: 'Organized' },
+  { key: 'good-energy',  label: 'Good energy' },
+  { key: 'mix-again',    label: 'Would mix again' },
+];
+
 const STAR_LABELS = ['', 'Rough', 'Meh', 'Solid', 'Great', 'Legendary'];
-const STAR_COLORS = ['', '#EF4444', '#F97316', '#FBBF24', '#22C55E', '#A855F7'];
+const STAR_COLORS = ['', '#EF4444', '#F97316', '#FBBF24', '#22C55E', '#3AE3A0'];
 
 function AnimatedStar({ filled, color, onPress, index }: {
   filled: boolean;
@@ -79,6 +88,15 @@ export function MixerRatingModal({
   const [stars, setStars] = useState<number | null>(null);
   const [comment, setComment] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<Set<RatingTag>>(new Set());
+
+  const toggleTag = (t: RatingTag) => {
+    setSelectedTags((prev) => {
+      const next = new Set(prev);
+      if (next.has(t)) next.delete(t); else next.add(t);
+      return next;
+    });
+  };
 
   const buttonScale = useSharedValue(1);
 
@@ -107,7 +125,7 @@ export function MixerRatingModal({
     const backendRating = stars * 2;
 
     try {
-      await onSubmit(backendRating, comment.trim() || undefined);
+      await onSubmit(backendRating, comment.trim() || undefined, Array.from(selectedTags));
       Haptics.success();
       setStars(null);
       setComment('');
@@ -192,6 +210,37 @@ export function MixerRatingModal({
                 ) : (
                   <Text style={styles.ratingPlaceholder}>Tap to rate</Text>
                 )}
+              </View>
+            </View>
+
+            {/* Tag chips */}
+            <View style={[styles.commentSection, { gap: 8 }]}>
+              <Text style={styles.sectionLabel}>What stood out? (optional)</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {TAG_OPTIONS.map((t) => {
+                  const active = selectedTags.has(t.key);
+                  return (
+                    <Pressable
+                      key={t.key}
+                      onPress={() => toggleTag(t.key)}
+                      style={{
+                        paddingHorizontal: 14,
+                        paddingVertical: 9,
+                        borderRadius: 999,
+                        borderWidth: 1,
+                        backgroundColor: active ? '#FFFFFF' : 'transparent',
+                        borderColor: active ? '#FFFFFF' : 'rgba(255,255,255,0.20)',
+                      }}
+                    >
+                      <Text style={{
+                        color: active ? '#000' : '#fff',
+                        fontSize: 13,
+                        fontWeight: '600',
+                        letterSpacing: -0.1,
+                      }}>{t.label}</Text>
+                    </Pressable>
+                  );
+                })}
               </View>
             </View>
 

@@ -180,7 +180,7 @@ export function InviteMembersModal({
                       <Image source={{ uri: invite.invitee.avatarUrl }} style={styles.userAvatar} />
                     ) : (
                       <LinearGradient
-                        colors={['#A855F7', '#8B5CF6']}
+                        colors={['#3AE3A0', '#4F7CFF']}
                         style={styles.userAvatarFallback}
                       >
                         <Text style={styles.userAvatarText}>
@@ -234,7 +234,7 @@ export function InviteMembersModal({
                           <Image source={{ uri: user.avatarUrl }} style={styles.userAvatar} />
                         ) : (
                           <LinearGradient
-                            colors={['#A855F7', '#8B5CF6']}
+                            colors={['#3AE3A0', '#4F7CFF']}
                             style={styles.userAvatarFallback}
                           >
                             <Text style={styles.userAvatarText}>{getInitials(user.name)}</Text>

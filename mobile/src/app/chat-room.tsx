@@ -58,7 +58,7 @@ function isMixerRoom(name: string | undefined): boolean {
 function SenderAvatar({ name }: { name: string }) {
   return (
     <LinearGradient
-      colors={['#7C3AED', '#A855F7']}
+      colors={['#28C988', '#3AE3A0']}
       style={styles.avatar}
     >
       <Text style={styles.avatarText}>{getInitials(name)}</Text>
@@ -93,10 +93,10 @@ function ChangeRequestBubble({ item, profileId, onRespond, isResponding }: Chang
     <View style={crStyles.wrapper}>
       {/* Header row */}
       <View style={crStyles.headerRow}>
-        <GitPullRequestArrow size={14} color="#A855F7" strokeWidth={2} />
+        <GitPullRequestArrow size={14} color="#3AE3A0" strokeWidth={2} />
         <Text style={crStyles.title}>Change Requested</Text>
-        <View style={[crStyles.statusBadge, { backgroundColor: '#A855F722', borderColor: '#A855F755' }]}>
-          <Text style={[crStyles.statusText, { color: '#A855F7' }]}>Pending</Text>
+        <View style={[crStyles.statusBadge, { backgroundColor: '#3AE3A022', borderColor: '#3AE3A055' }]}>
+          <Text style={[crStyles.statusText, { color: '#3AE3A0' }]}>Pending</Text>
         </View>
       </View>
 
@@ -171,7 +171,7 @@ const crStyles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     fontWeight: '700',
-    color: '#A855F7',
+    color: '#3AE3A0',
   },
   statusBadge: {
     paddingHorizontal: 10,
@@ -278,7 +278,7 @@ function MessageBubble({ item, isMe, showSender, profileId, mixerId, onRespond, 
 
         {isMe ? (
           <LinearGradient
-            colors={['#7C3AED', '#A855F7']}
+            colors={['#28C988', '#3AE3A0']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={[styles.bubble, styles.bubbleMe]}

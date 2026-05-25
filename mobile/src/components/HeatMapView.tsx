@@ -74,7 +74,7 @@ const CATEGORY_COLORS: Record<VenueCategory, string> = {
   dining: '#FB923C',
   quad: '#4ADE80',
   gym: '#F472B6',
-  party: '#A78BFA',
+  party: '#4F7CFF',
   other: '#94A3B8',
 };
 
